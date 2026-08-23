@@ -100,73 +100,11 @@
             animation: newBestPulse 1s infinite;
             margin: 10px 0;
         }
-
-        /* On-Screen Mobile Touch Controls */
-        #mobile-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 25;
-            pointer-events: none;
-            box-sizing: border-box;
-        }
-        .ctrl-group {
-            display: flex;
-            gap: 15px;
-            pointer-events: auto;
-        }
-        .mob-btn {
-            width: 70px;
-            height: 70px;
-            background: rgba(0, 255, 255, 0.15);
-            border: 2px solid #0ff;
-            border-radius: 50%;
-            color: #0ff;
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-shadow: 0 0 8px #0ff;
-            box-shadow: 0 0 10px rgba(0,255,255,0.3);
-            -webkit-tap-highlight-color: transparent;
-            cursor: pointer;
-        }
-        .mob-btn:active {
-            background: rgba(0, 255, 255, 0.4);
-            transform: scale(0.92);
-        }
-        #mob-jump {
-            pointer-events: auto;
-            background: rgba(255, 0, 255, 0.15);
-            border-color: #f0f;
-            color: #f0f;
-            text-shadow: 0 0 8px #f0f;
-            box-shadow: 0 0 10px rgba(255,0,255,0.3);
-        }
-        #mob-jump:active {
-            background: rgba(255, 0, 255, 0.4);
-        }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
     <div id="hud"></div>
-
-    <!-- ON-SCREEN MOBILE CONTROLS -->
-    <div id="mobile-controls">
-        <div class="ctrl-group">
-            <div id="mob-left" class="mob-btn">◀</div>
-            <div id="mob-right" class="mob-btn">▶</div>
-        </div>
-        <div class="ctrl-group">
-            <div id="mob-jump" class="mob-btn">▲</div>
-        </div>
-    </div>
 
     <!-- AUDIO TOGGLE -->
     <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; animation: none;">🎵 ON</button>
@@ -176,6 +114,7 @@
         <h1 style="font-size: 56px; margin: 0; text-shadow: 0 0 15px #0ff;">CYBER RUN</h1>
         <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px;">HIGH SCORE: 0</div>
         <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
+        <div style="font-size: 14px; color: #888; margin-bottom: 15px; text-shadow: none;">Swipe Left/Right to change lanes • Swipe Up to Jump</div>
         <div>
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
             <button id="btn-market" class="neon-btn purple">MARKETPLACE</button>
@@ -288,46 +227,28 @@
             if ('vibrate' in navigator) navigator.vibrate(pattern);
         }
         bindEvents() {
-            const leftBtn = document.getElementById('mob-left');
-            const rightBtn = document.getElementById('mob-right');
-            const jumpBtn = document.getElementById('mob-jump');
-
-            leftBtn.addEventListener('touchstart', e => {
-                e.preventDefault();
-                if (!this.game.gO && !this.game.inM && this.game.cL > 0) this.game.cL--;
-            }, { passive: false });
-
-            rightBtn.addEventListener('touchstart', e => {
-                e.preventDefault();
-                if (!this.game.gO && !this.game.inM && this.game.cL < 2) this.game.cL++;
-            }, { passive: false });
-
-            jumpBtn.addEventListener('touchstart', e => {
-                e.preventDefault();
-                if (this.game.gO) { this.game.restart(); return; }
-                if (!this.game.inM && !this.game.isJ) {
-                    this.game.isJ = 1;
-                    this.game.jV = 0.17;
-                }
-            }, { passive: false });
-
             window.addEventListener('touchstart', e => {
-                if (e.target.id === 'btn-music' || e.target.classList.contains('mob-btn')) return;
+                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
                 this.touchX = e.touches[0].clientX;
                 this.touchY = e.touches[0].clientY;
             }, { passive: true });
 
             window.addEventListener('touchend', e => {
-                if (e.target.id === 'btn-music' || e.target.classList.contains('mob-btn')) return;
+                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
                 if (this.game.gO) { this.game.restart(); return; }
                 if (this.game.inM) return;
+                
                 let dx = e.changedTouches[0].clientX - this.touchX;
                 let dy = e.changedTouches[0].clientY - this.touchY;
+                
                 if (Math.abs(dx) > Math.abs(dy)) {
                     if (dx > 30 && this.game.cL < 2) this.game.cL++;
                     else if (dx < -30 && this.game.cL > 0) this.game.cL--;
                 } else {
-                    if (dy < -30 && !this.game.isJ) { this.game.isJ = 1; this.game.jV = 0.17; }
+                    if (dy < -30 && !this.game.isJ) { 
+                        this.game.isJ = 1; 
+                        this.game.jV = 0.17; 
+                    }
                 }
             }, { passive: true });
 
@@ -448,7 +369,6 @@
             this.hud = document.getElementById('hud');
             this.mainMenu = document.getElementById('main-menu');
             this.marketMenu = document.getElementById('market-menu');
-            this.mobileControls = document.getElementById('mobile-controls');
             
             this.audio = new AudioSystem();
             this.input = new InputManager(this);
@@ -516,14 +436,12 @@
             this.mainMenu.style.display = 'flex';
             this.marketMenu.style.display = 'none';
             this.hud.style.display = 'none';
-            this.mobileControls.style.display = 'none';
             document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
             document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
         }
         showMarket() {
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'flex';
-            this.mobileControls.style.display = 'none';
             this.updateMarketUI();
         }
         updateMarketUI() {
@@ -543,7 +461,6 @@
             this.audio.resetCombo();
             
             this.hud.style.display = 'block';
-            this.mobileControls.style.display = 'flex';
             this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
@@ -636,7 +553,6 @@
                     this.gO = 1;
                     this.renderer.shakeTimer = 0.15;
                     this.input.vibrate([100, 50, 100]);
-                    this.mobileControls.style.display = 'none';
                     this.totalCredits += this.coinsCount;
                     SafeStorage.setItem('cyber_credits', this.totalCredits);
                     let newBest = false;
@@ -664,3 +580,10 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
