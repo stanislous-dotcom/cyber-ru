@@ -1,0 +1,13 @@
+{
+  "background_color": "#03030a",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "stanislous-dotcom.github",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "stanislous-dotcom.github",
+  "start_url": "/",
+  "theme_color": "#03030a",
+  "id": "/cyber-run",
+  "description": "a fast paced neon 3d neon cyberpunk runner game made by 12 yr old dj14"
+}
