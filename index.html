@@ -1,12 +1,11 @@
-
-document.write(`<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cyber Run 3D</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
         body { background: #03030a; overflow: hidden; font-family: sans-serif; font-weight: 900; }
         
         @keyframes neonPulse {
@@ -34,6 +33,7 @@ document.write(`<!DOCTYPE html>
             transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
             text-shadow: 0 0 8px #0ff;
             margin: 8px;
+            -webkit-tap-highlight-color: transparent;
         }
         .neon-btn:hover { background: rgba(0, 255, 255, 0.15); }
         .neon-btn:active { transform: scale(0.95); }
@@ -100,13 +100,74 @@ document.write(`<!DOCTYPE html>
             animation: newBestPulse 1s infinite;
             margin: 10px 0;
         }
+
+        /* On-Screen Mobile Touch Controls */
+        #mobile-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 25;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+        .ctrl-group {
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+        }
+        .mob-btn {
+            width: 70px;
+            height: 70px;
+            background: rgba(0, 255, 255, 0.15);
+            border: 2px solid #0ff;
+            border-radius: 50%;
+            color: #0ff;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 8px #0ff;
+            box-shadow: 0 0 10px rgba(0,255,255,0.3);
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+        .mob-btn:active {
+            background: rgba(0, 255, 255, 0.4);
+            transform: scale(0.92);
+        }
+        #mob-jump {
+            pointer-events: auto;
+            background: rgba(255, 0, 255, 0.15);
+            border-color: #f0f;
+            color: #f0f;
+            text-shadow: 0 0 8px #f0f;
+            box-shadow: 0 0 10px rgba(255,0,255,0.3);
+        }
+        #mob-jump:active {
+            background: rgba(255, 0, 255, 0.4);
+        }
     </style>
 </head>
 <body>
-
     <canvas id="canvas"></canvas>
     <div id="hud"></div>
-    
+
+    <!-- ON-SCREEN MOBILE CONTROLS -->
+    <div id="mobile-controls">
+        <div class="ctrl-group">
+            <div id="mob-left" class="mob-btn">◀</div>
+            <div id="mob-right" class="mob-btn">▶</div>
+        </div>
+        <div class="ctrl-group">
+            <div id="mob-jump" class="mob-btn">▲</div>
+        </div>
+    </div>
+
     <!-- AUDIO TOGGLE -->
     <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; animation: none;">🎵 ON</button>
 
@@ -138,12 +199,10 @@ document.write(`<!DOCTYPE html>
                 <button id="buy-skin" class="neon-btn purple" style="font-size:14px; padding:6px 12px;">250 CR</button>
             </div>
         </div>
-
         <button id="btn-market-back" class="neon-btn">BACK TO MENU</button>
     </div>
 
     <script>
-    // Safe storage wrapper to prevent SecurityError on about:blank
     const SafeStorage = {
         data: {},
         getItem(key) {
@@ -166,13 +225,11 @@ document.write(`<!DOCTYPE html>
             this.tempo = 180;
             this.isMuted = SafeStorage.getItem('cyber_muted') === 'true';
         }
-
         init() {
             if (this.ctx) return;
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
             this.startMusic();
         }
-
         toggleMute() {
             this.isMuted = !this.isMuted;
             SafeStorage.setItem('cyber_muted', this.isMuted.toString());
@@ -183,7 +240,6 @@ document.write(`<!DOCTYPE html>
             }
             return this.isMuted;
         }
-
         startMusic() {
             if (this.interval) clearInterval(this.interval);
             this.interval = setInterval(() => {
@@ -198,7 +254,6 @@ document.write(`<!DOCTYPE html>
                 this.step++;
             }, this.tempo);
         }
-
         setTempo(speedRatio) {
             let newTempo = Math.max(90, 180 - (speedRatio * 50));
             if (Math.abs(this.tempo - newTempo) > 10) {
@@ -206,7 +261,6 @@ document.write(`<!DOCTYPE html>
                 if (this.ctx) this.startMusic();
             }
         }
-
         playCoinSound() {
             if (!this.ctx || this.isMuted) return;
             if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -220,7 +274,6 @@ document.write(`<!DOCTYPE html>
             o.start(t); o.stop(t + 0.15);
             this.coinCombo++;
         }
-
         resetCombo() { this.coinCombo = 0; }
     }
 
@@ -231,20 +284,41 @@ document.write(`<!DOCTYPE html>
             this.touchY = 0;
             this.bindEvents();
         }
-
         vibrate(pattern) {
             if ('vibrate' in navigator) navigator.vibrate(pattern);
         }
-
         bindEvents() {
+            const leftBtn = document.getElementById('mob-left');
+            const rightBtn = document.getElementById('mob-right');
+            const jumpBtn = document.getElementById('mob-jump');
+
+            leftBtn.addEventListener('touchstart', e => {
+                e.preventDefault();
+                if (!this.game.gO && !this.game.inM && this.game.cL > 0) this.game.cL--;
+            }, { passive: false });
+
+            rightBtn.addEventListener('touchstart', e => {
+                e.preventDefault();
+                if (!this.game.gO && !this.game.inM && this.game.cL < 2) this.game.cL++;
+            }, { passive: false });
+
+            jumpBtn.addEventListener('touchstart', e => {
+                e.preventDefault();
+                if (this.game.gO) { this.game.restart(); return; }
+                if (!this.game.inM && !this.game.isJ) {
+                    this.game.isJ = 1;
+                    this.game.jV = 0.17;
+                }
+            }, { passive: false });
+
             window.addEventListener('touchstart', e => {
-                if (e.target.id === 'btn-music') return;
+                if (e.target.id === 'btn-music' || e.target.classList.contains('mob-btn')) return;
                 this.touchX = e.touches[0].clientX;
                 this.touchY = e.touches[0].clientY;
             }, { passive: true });
 
             window.addEventListener('touchend', e => {
-                if (e.target.id === 'btn-music') return;
+                if (e.target.id === 'btn-music' || e.target.classList.contains('mob-btn')) return;
                 if (this.game.gO) { this.game.restart(); return; }
                 if (this.game.inM) return;
                 let dx = e.changedTouches[0].clientX - this.touchX;
@@ -276,10 +350,9 @@ document.write(`<!DOCTYPE html>
             this.initShaders();
             this.initBuffers();
         }
-
         initShaders() {
             const gl = this.gl;
-            const vCode = \`
+            const vCode = `
                 attribute vec4 p;
                 uniform mat4 m, pr;
                 varying float h;
@@ -290,8 +363,8 @@ document.write(`<!DOCTYPE html>
                     h = p.y + 0.5;
                     vDepth = pos.z;
                 }
-            \`;
-            const fCode = \`
+            `;
+            const fCode = `
                 precision mediump float;
                 uniform vec4 c;
                 uniform float uGlow;
@@ -304,8 +377,7 @@ document.write(`<!DOCTYPE html>
                     vec3 finalColor = mix(fogColor, emissive, fogFactor);
                     gl_FragColor = vec4(finalColor, c.a);
                 }
-            \`;
-
+            `;
             let v = gl.createShader(35633), f = gl.createShader(35632);
             gl.shaderSource(v, vCode); gl.compileShader(v);
             gl.shaderSource(f, fCode); gl.compileShader(f);
@@ -313,14 +385,12 @@ document.write(`<!DOCTYPE html>
             this.P = gl.createProgram();
             gl.attachShader(this.P, v); gl.attachShader(this.P, f);
             gl.linkProgram(this.P); gl.useProgram(this.P);
-
             this.ap = gl.getAttribLocation(this.P, 'p');
             this.um = gl.getUniformLocation(this.P, 'm');
             this.up = gl.getUniformLocation(this.P, 'pr');
             this.uc = gl.getUniformLocation(this.P, 'c');
             this.uGlow = gl.getUniformLocation(this.P, 'uGlow');
         }
-
         initBuffers() {
             const gl = this.gl;
             this.vB = gl.createBuffer();
@@ -340,7 +410,6 @@ document.write(`<!DOCTYPE html>
                 12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23
             ]), 35044);
         }
-
         mat(x, y, z, rY = 0, sY = 1, tiltZ = 0) {
             let syM = Math.sin(rY), cY = Math.cos(rY);
             let cZ = Math.cos(tiltZ), sZ = Math.sin(tiltZ);
@@ -352,7 +421,6 @@ document.write(`<!DOCTYPE html>
                 x, y * .88 - z * .47 - 2.3, y * .47 + z * .88 - 5.8, 1
             ]);
         }
-
         render(dt, pX, pY, dtFactor) {
             const gl = this.gl;
             if (this.c.width !== window.innerWidth || this.c.height !== window.innerHeight) {
@@ -361,7 +429,6 @@ document.write(`<!DOCTYPE html>
             }
             gl.clearColor(0.02, 0.01, 0.05, 1);
             gl.clear(16640); gl.enable(2929);
-
             let f = 1 / Math.tan(0.42), nf = 1 / (0.1 - 100);
             let proj = new Float32Array([f / (this.c.width / this.c.height), 0, 0, 0, 0, f, 0, 0, 0, 0, 100.1 * nf, -1, 0, 0, 20 * nf, 0]);
             if (this.shakeTimer > 0) {
@@ -381,6 +448,7 @@ document.write(`<!DOCTYPE html>
             this.hud = document.getElementById('hud');
             this.mainMenu = document.getElementById('main-menu');
             this.marketMenu = document.getElementById('market-menu');
+            this.mobileControls = document.getElementById('mobile-controls');
             
             this.audio = new AudioSystem();
             this.input = new InputManager(this);
@@ -396,7 +464,6 @@ document.write(`<!DOCTYPE html>
             this.boostTimer = 0;
             this.slowTimer = 0;
             this.magnetTimer = 0;
-
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
             this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
@@ -405,7 +472,6 @@ document.write(`<!DOCTYPE html>
             this.initUI();
             this.showMainMenu();
         }
-
         initUI() {
             let musicBtn = document.getElementById('btn-music');
             const updateMusicBtn = () => {
@@ -420,17 +486,14 @@ document.write(`<!DOCTYPE html>
                 this.audio.toggleMute();
                 updateMusicBtn();
             };
-
             document.getElementById('btn-play').onclick = () => {
                 this.audio.init();
                 this.inM = 0;
                 this.init();
                 this.loop(performance.now());
             };
-
             document.getElementById('btn-market').onclick = () => this.showMarket();
             document.getElementById('btn-market-back').onclick = () => this.showMainMenu();
-
             document.getElementById('buy-magnet').onclick = () => {
                 if (this.totalCredits >= 100 && !this.magnetUpgraded) {
                     this.totalCredits -= 100;
@@ -440,33 +503,31 @@ document.write(`<!DOCTYPE html>
                     this.updateMarketUI();
                 }
             };
-
             this.uUI = () => {
-                let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' : 
-                            (this.slowTimer > 0 ? ' <span style="color:#f0f">[SLOWED]</span>' : 
+                let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' :
+                            (this.slowTimer > 0 ? ' <span style="color:#f0f">[SLOWED]</span>' :
                             (this.magnetTimer > 0 ? ' <span style="color:#0ff">[MAGNET!]</span>' : ''));
-                this.hud.innerHTML = \`SCORE: \${Math.floor(this.score)} | BEST: \${this.highScore} | CREDITS: \${this.coinsCount}\${status}\`;
+                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}`;
             };
         }
-
         showMainMenu() {
             this.inM = 1;
             this.gO = 0;
             this.mainMenu.style.display = 'flex';
             this.marketMenu.style.display = 'none';
             this.hud.style.display = 'none';
-            document.getElementById('menu-high-score').innerText = \`HIGH SCORE: \${this.highScore}\`;
-            document.getElementById('menu-credits').innerText = \`TOTAL CREDITS: \${this.totalCredits}\`;
+            this.mobileControls.style.display = 'none';
+            document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
+            document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
         }
-
         showMarket() {
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'flex';
+            this.mobileControls.style.display = 'none';
             this.updateMarketUI();
         }
-
         updateMarketUI() {
-            document.getElementById('market-credits').innerText = \`CREDITS: \${this.totalCredits}\`;
+            document.getElementById('market-credits').innerText = `CREDITS: ${this.totalCredits}`;
             let buyMagBtn = document.getElementById('buy-magnet');
             if (this.magnetUpgraded) {
                 buyMagBtn.innerText = 'OWNED';
@@ -474,7 +535,6 @@ document.write(`<!DOCTYPE html>
                 buyMagBtn.style.opacity = '0.5';
             }
         }
-
         init() {
             this.cL = 1; this.pX = 0; this.pY = -0.4; this.jV = 0; this.isJ = 0;
             this.obs = []; this.coins = []; this.items = [];
@@ -483,6 +543,7 @@ document.write(`<!DOCTYPE html>
             this.audio.resetCombo();
             
             this.hud.style.display = 'block';
+            this.mobileControls.style.display = 'flex';
             this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
@@ -490,21 +551,17 @@ document.write(`<!DOCTYPE html>
             this.uUI();
             this.sp(); this.spC(); this.spI();
         }
-
         restart() { this.init(); this.loop(performance.now()); }
-
         sp() {
             if (this.gO || this.inM) return;
             this.obs.push({ x: this.lanes[Math.floor(Math.random() * 3)], z: -45, hScale: Math.random() > 0.5 ? 1.8 : 1.0 });
             setTimeout(() => this.sp(), Math.random() * 400 + 350);
         }
-
         spC() {
             if (this.gO || this.inM) return;
             if (Math.random() > .3) this.coins.push({ x: this.lanes[Math.floor(Math.random() * 3)], z: -45 });
             setTimeout(() => this.spC(), 300);
         }
-
         spI() {
             if (this.gO || this.inM) return;
             if (Math.random() > .4) {
@@ -513,49 +570,38 @@ document.write(`<!DOCTYPE html>
             }
             setTimeout(() => this.spI(), Math.random() * 2000 + 1500);
         }
-
         loop(timestamp) {
             if (this.gO || this.inM) return;
             requestAnimationFrame(t => this.loop(t));
-
             let dt = this.lastTime ? (timestamp - this.lastTime) / 1000 : 0.016;
             this.lastTime = timestamp;
             if (dt > 0.1) dt = 0.1;
             let dtFactor = dt * 60;
-
             this.renderer.render(dt, this.pX, this.pY, dtFactor);
-
             if (this.boostTimer > 0) this.boostTimer -= dtFactor;
             if (this.slowTimer > 0) this.slowTimer -= dtFactor;
             if (this.magnetTimer > 0) this.magnetTimer -= dtFactor;
-
             let modSpd = this.spd * (this.boostTimer > 0 ? 1.6 : (this.slowTimer > 0 ? 0.5 : 1.0));
             let dynamicSpd = (this.inM ? 0.03 : modSpd + Math.sin(this.score * 0.01) * 0.05) * dtFactor;
             this.audio.setTempo(modSpd);
-
             this.pX += (this.lanes[this.cL] - this.pX) * (0.2 * dtFactor);
             let camTiltZ = -this.pX * 0.05;
-
             if (this.isJ) {
                 this.pY += this.jV * dtFactor;
                 this.jV -= 0.012 * dtFactor;
                 if (this.pY <= -0.4) { this.pY = -0.4; this.isJ = 0; }
             }
-
             const gl = this.renderer.gl;
             gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
             gl.uniform4fv(this.renderer.uc, this.boostTimer > 0 ? [0, 1, 0.4, 1] : [0, 1, 1, 1]);
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(4, 24, 5123, 0);
-
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
-
                 if (this.magnetTimer > 0 && o.z > -15) {
                     o.x += (this.pX - o.x) * 0.15 * dtFactor;
                 }
-
                 if (Math.abs(o.x - this.pX) < 0.5 && o.z > -6.6 && o.z < -5.4) {
                     this.coins.splice(i, 1);
                     this.coinsCount++; this.score += 50;
@@ -569,14 +615,12 @@ document.write(`<!DOCTYPE html>
                 gl.uniform1f(this.renderer.uGlow, 1.5);
                 gl.drawElements(4, 6, 5123, 60);
             }
-
             for (let i = this.items.length - 1; i >= 0; i--) {
                 let it = this.items[i]; it.z += dynamicSpd;
                 if (Math.abs(it.x - this.pX) < 0.6 && it.z > -6.6 && it.z < -5.4) {
                     if (it.t === 'b') { this.boostTimer = 180; this.slowTimer = 0; }
                     else if (it.t === 's') { this.slowTimer = 180; this.boostTimer = 0; }
                     else if (it.t === 'm') { this.magnetTimer = this.magnetUpgraded ? 420 : 300; }
-                    
                     this.input.vibrate(80);
                     this.items.splice(i, 1); this.uUI(); continue;
                 }
@@ -586,29 +630,26 @@ document.write(`<!DOCTYPE html>
                 gl.uniform1f(this.renderer.uGlow, 2.0);
                 gl.drawElements(4, 6, 5123, 60);
             }
-
             for (let i = this.obs.length - 1; i >= 0; i--) {
                 let o = this.obs[i]; o.z += dynamicSpd;
                 if (Math.abs(o.x - this.pX) < 0.65 && o.z > -6.6 && o.z < -5.4 && this.pY < 0.2) {
                     this.gO = 1;
                     this.renderer.shakeTimer = 0.15;
                     this.input.vibrate([100, 50, 100]);
-                    
+                    this.mobileControls.style.display = 'none';
                     this.totalCredits += this.coinsCount;
                     SafeStorage.setItem('cyber_credits', this.totalCredits);
-
                     let newBest = false;
                     if (Math.floor(this.score) > this.highScore) {
                         this.highScore = Math.floor(this.score);
                         SafeStorage.setItem('cyber_high_score', this.highScore);
                         newBest = true;
                     }
-
-                    this.hud.innerHTML = \`GAME OVER<br>\` + 
-                        (newBest ? \`<span class="new-best-anim">NEW BEST!</span><br>\` : '') +
-                        \`<span style="font-size:18px;color:#888;">SCORE: \${Math.floor(this.score)}</span><br>\` +
-                        \`<button class="neon-btn" onclick="window.game.restart()">RETRY</button>\` +
-                        \`<button class="neon-btn purple" onclick="window.game.showMainMenu()">MENU</button>\`;
+                    this.hud.innerHTML = `GAME OVER<br>` + 
+                         (newBest ? `<span class="new-best-anim">NEW BEST!</span><br>` : '') + 
+                         `<span style="font-size:18px;color:#888;">SCORE: ${Math.floor(this.score)}</span><br>` + 
+                         `<button class="neon-btn" onclick="window.game.restart()">RETRY</button>` + 
+                         `<button class="neon-btn purple" onclick="window.game.showMainMenu()">MENU</button>`;
                     this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#f14;font-size:44px;text-align:center;pointer-events:auto;';
                 }
                 if (o.z > 1) { this.obs.splice(i, 1); this.score += 10; this.spd += 0.002; this.uUI(); continue; }
@@ -619,8 +660,7 @@ document.write(`<!DOCTYPE html>
             }
         }
     }
-
     window.game = new CyberRunGame();
     </script>
 </body>
-</html>`);
+</html>
