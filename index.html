@@ -179,7 +179,7 @@
         <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
         <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
         <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
-            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot<br>Use Arrow Keys / Space / F on desktop
+            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot Boss<br>Use Arrow Keys / Space / F on desktop
         </div>
         <div>
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
@@ -376,7 +376,7 @@
             }, { passive: true });
 
             document.getElementById('btn-fire').addEventListener('click', () => {
-                if (!this.game.gO && !this.game.inM) {
+                if (!this.game.gO && !this.game.inM && this.game.inBossFight) {
                     this.game.shootLaser();
                 }
             });
@@ -402,7 +402,7 @@
                     this.game.isJ = 1;
                     this.game.jV = 0.17;
                 }
-                if (e.key === 'f' || e.key === 'F' || e.key === 'Enter') {
+                if ((e.key === 'f' || e.key === 'F' || e.key === 'Enter') && this.game.inBossFight) {
                     this.game.shootLaser();
                 }
             });
@@ -587,7 +587,7 @@
             
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
-            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up'] === 'true';
+            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
             this.lastTime = 0;
             
             this.initUI();
@@ -688,7 +688,7 @@
             
             this.hud.style.display = 'block';
             this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
-            document.getElementById('btn-fire').style.display = 'block';
+            document.getElementById('btn-fire').style.display = 'none'; // Hidden until boss fight starts
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
             
@@ -704,7 +704,7 @@
         }
 
         shootLaser() {
-            if (this.gO || this.inM) return;
+            if (this.gO || this.inM || !this.inBossFight) return;
             this.bullets.push({
                 x: this.pX,
                 z: -6
@@ -715,17 +715,30 @@
 
         sp() {
             if (this.gO || this.inM) return;
-            this.obs.push({
-                x: this.lanes[Math.floor(Math.random() * 3)],
-                z: -45,
-                hScale: Math.random() > 0.5 ? 1.8 : 1.0
-            });
-            setTimeout(() => this.sp(), Math.random() * 400 + 350);
+            
+            // During boss fight, only spawn flying pink laser obstacles
+            if (this.inBossFight) {
+                this.obs.push({
+                    x: this.lanes[Math.floor(Math.random() * 3)],
+                    z: -45,
+                    hScale: 1.5,
+                    isBossLaser: true
+                });
+                setTimeout(() => this.sp(), 700);
+            } else {
+                this.obs.push({
+                    x: this.lanes[Math.floor(Math.random() * 3)],
+                    z: -45,
+                    hScale: Math.random() > 0.5 ? 1.8 : 1.0,
+                    isBossLaser: false
+                });
+                setTimeout(() => this.sp(), Math.random() * 400 + 350);
+            }
         }
 
         spC() {
             if (this.gO || this.inM) return;
-            if (Math.random() > .3) {
+            if (!this.inBossFight && Math.random() > .3) {
                 this.coins.push({
                     x: this.lanes[Math.floor(Math.random() * 3)],
                     z: -45
@@ -736,7 +749,7 @@
 
         spI() {
             if (this.gO || this.inM) return;
-            if (Math.random() > .4) {
+            if (!this.inBossFight && Math.random() > .4) {
                 let types = ['b', 's', 'm'];
                 this.items.push({
                     x: this.lanes[Math.floor(Math.random() * 3)],
@@ -751,6 +764,7 @@
             this.inBossFight = true;
             this.bossTimerFrames = 0;
             this.bossHud.style.display = 'block';
+            document.getElementById('btn-fire').style.display = 'block'; // Show fire button only during boss fight
         }
 
         loop(timestamp) {
@@ -767,22 +781,12 @@
             this.score += 0.5 * dtFactor;
             this.uUI();
 
-            if (!this.inBossFight && this.score >= 1000) {
+            if (!this.inBossFight && this.score >= 2000) {
                 this.triggerBossFight();
             }
 
             if (this.inBossFight) {
                 this.bossTimerFrames += dtFactor;
-                this.bossAttackTimer += dtFactor;
-                if (this.bossAttackTimer > 120) {
-                    this.bossAttackTimer = 0;
-                    this.obs.push({
-                        x: this.lanes[Math.floor(Math.random() * 3)],
-                        z: -45,
-                        hScale: 1.5,
-                        isBossLaser: true
-                    });
-                }
                 
                 let remainingRatio = Math.max(0, 1 - (this.bossTimerFrames / this.bossMaxFrames));
                 document.getElementById('boss-health-fill').style.width = (remainingRatio * 100) + '%';
@@ -790,6 +794,7 @@
                 if (this.bossTimerFrames >= this.bossMaxFrames) {
                     this.inBossFight = false;
                     this.bossHud.style.display = 'none';
+                    document.getElementById('btn-fire').style.display = 'none';
                     this.score += 1000;
                     this.coinsCount += 100;
                 }
@@ -833,21 +838,7 @@
                 let b = this.bullets[i];
                 b.z -= 1.2 * dtFactor;
 
-                let hitObs = false;
-                // Only destroy regular obstacles when NOT in boss fight mode
-                if (!this.inBossFight) {
-                    for (let j = this.obs.length - 1; j >= 0; j--) {
-                        let o = this.obs[j];
-                        if (Math.abs(b.x - o.x) < 0.6 && Math.abs(b.z - o.z) < 1.0) {
-                            this.obs.splice(j, 1);
-                            hitObs = true;
-                            this.score += 10;
-                            break;
-                        }
-                    }
-                }
-
-                if (hitObs || b.z < -45) {
+                if (b.z < -45) {
                     this.bullets.splice(i, 1);
                     continue;
                 }
@@ -922,7 +913,9 @@
                 let o = this.obs[i];
                 o.z += dynamicSpd;
 
-                if (Math.abs(o.x - this.pX) < 0.65 && o.z > -6.6 && o.z < -5.4 && this.pY < 0.2) {
+                // Collision check (flying boss lasers need jump clearance depending on height, or side dodge)
+                let collisionYThreshold = o.isBossLaser ? 0.6 : 0.2;
+                if (Math.abs(o.x - this.pX) < 0.65 && o.z > -6.6 && o.z < -5.4 && this.pY < collisionYThreshold) {
                     this.gO = 1;
                     this.renderer.shakeTimer = 0.15;
                     this.input.vibrate([100, 50, 100]);
@@ -959,7 +952,8 @@
                     continue;
                 }
 
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.4, o.z, 0, o.hScale));
+                let renderY = o.isBossLaser ? 0.3 : -0.4;
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, renderY, o.z, 0, o.hScale));
                 gl.uniform4fv(this.renderer.uc, o.isBossLaser ? [1, 0, 0.8, 1] : [1, 0, 0.25, 1]);
                 gl.uniform1f(this.renderer.uGlow, o.isBossLaser ? 2.5 : 1.5);
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
