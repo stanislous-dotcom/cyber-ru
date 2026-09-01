@@ -141,7 +141,7 @@
     <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; animation: none;">🎵 ON</button>
 
     <div id="main-menu" class="overlay-screen">
-        <h1 style="font-size: 64px; margin: 0; text-shadow: 0 0 20px #0ff, 0.0 0 40px #0ff; letter-spacing: 4px;">CYBER RUN</h1>
+        <h1 style="font-size: 64px; margin: 0; text-shadow: 0 0 20px #0ff, 0 0 40px #0ff; letter-spacing: 4px;">CYBER RUN</h1>
         <div style="font-size: 14px; color: #f0f; letter-spacing: 6px; margin-bottom: 20px; text-shadow: 0 0 6px #f0f;">3D REMASTERED</div>
         <div id="menu-high-score" style="color: #ffd700; margin: 5px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
         <div id="menu-credits" style="color: #0ff; margin-bottom: 20px; font-size: 18px;">TOTAL CREDITS: 0</div>
@@ -392,30 +392,19 @@
             this.iB = gl.createBuffer();
             
             const vertices = new Float32Array([
-                // Cube mesh (0-23)
+                // Cube mesh (0-23) - used for player and obstacles
                 -0.4,-0.4,0.4,  0.4,-0.4,0.4,  0.4,0.4,0.4, -0.4,0.4,0.4,
                 -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4, 0.4,-0.4,-0.4,
                 -0.4,0.4,-0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,0.4,-0.4,
                 -0.4,-0.4,-0.4, 0.4,-0.4,-0.4, 0.4,-0.4,0.4, -0.4,-0.4,0.4,
                 -0.4,-0.4,0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,-0.4,0.4,
-                -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4,  0.4,-0.4,-0.4,
-
-                // Diamond/Coin mesh (24-29)
-                 0.0,  0.4,  0.0,
-                -0.3,  0.0,  0.3,
-                 0.3,  0.0,  0.3,
-                 0.3,  0.0, -0.3,
-                -0.3,  0.0, -0.3,
-                 0.0, -0.4,  0.0
+                -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4,  0.4,-0.4,-0.4
             ]);
 
             const indices = new Uint16Array([
                 0,1,2, 0,2,3,    4,5,6, 4,6,7,
                 8,9,10, 8,10,11,    12,13,14, 12,14,15,
-                16,17,18, 16,18,19, 20,21,22, 20,22,23,
-                
-                24,25,26,  24,26,27,  24,27,28,  24,28,25,
-                29,26,25,  29,27,26,  29,28,27,  29,25,28
+                16,17,18, 16,18,19, 20,21,22, 20,22,23
             ]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vB);
@@ -488,7 +477,6 @@
             
             this.obs = [];
             this.coins = [];
-            this.items = [];
             this.particles = [];
             
             this.score = 0;
@@ -496,10 +484,6 @@
             this.spd = 0.32;
             this.gO = 0;
             this.inM = 1;
-            
-            this.boostTimer = 0;
-            this.slowTimer = 0;
-            this.magnetTimer = 0;
             
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
@@ -552,10 +536,7 @@
             };
 
             this.uUI = () => {
-                let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' :
-                             (this.slowTimer > 0 ? ' <span style="color:#f0f">[SLOWED]</span>' :
-                             (this.magnetTimer > 0 ? ' <span style="color:#0ff">[MAGNET!]</span>' : ''));
-                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}`;
+                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}`;
             };
         }
 
@@ -595,15 +576,11 @@
             this.isJ = 0;
             this.obs = [];
             this.coins = [];
-            this.items = [];
             this.particles = [];
             this.score = 0;
             this.coinsCount = 0;
             this.spd = 0.32;
             this.gO = 0;
-            this.boostTimer = 0;
-            this.slowTimer = 0;
-            this.magnetTimer = 0;
             this.audio.resetCombo();
             
             this.hud.style.display = 'block';
@@ -614,7 +591,6 @@
             this.uUI();
             this.sp();
             this.spC();
-            this.spI();
         }
 
         restart() {
@@ -643,19 +619,6 @@
             setTimeout(() => this.spC(), 250);
         }
 
-        spI() {
-            if (this.gO || this.inM) return;
-            if (Math.random() > 0.35) {
-                let types = ['b', 's', 'm'];
-                this.items.push({
-                    x: this.lanes[Math.floor(Math.random() * 3)],
-                    z: -45,
-                    t: types[Math.floor(Math.random() * 3)]
-                });
-            }
-            setTimeout(() => this.spI(), Math.random() * 1800 + 1200);
-        }
-
         loop(timestamp) {
             if (this.gO || this.inM) return;
             requestAnimationFrame(t => this.loop(t));
@@ -667,13 +630,8 @@
 
             this.renderer.render(dt);
 
-            if (this.boostTimer > 0) this.boostTimer -= dtFactor;
-            if (this.slowTimer > 0) this.slowTimer -= dtFactor;
-            if (this.magnetTimer > 0) this.magnetTimer -= dtFactor;
-
-            let modSpd = this.spd * (this.boostTimer > 0 ? 1.65 : (this.slowTimer > 0 ? 0.55 : 1.0));
-            let dynamicSpd = (modSpd + Math.sin(this.score * 0.01) * 0.06) * dtFactor;
-            this.audio.setTempo(modSpd);
+            let dynamicSpd = (this.spd + Math.sin(this.score * 0.01) * 0.06) * dtFactor;
+            this.audio.setTempo(this.spd);
 
             this.pX += (this.lanes[this.cL] - this.pX) * (0.25 * dtFactor);
             let camTiltZ = -this.pX * 0.06;
@@ -720,14 +678,10 @@
             gl.uniform1f(this.renderer.uGlow, 2.2);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Coins
+            // Classic Coins
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
-
-                if (this.magnetTimer > 0 && o.z > -16) {
-                    o.x += (this.pX - o.x) * 0.18 * dtFactor;
-                }
 
                 if (Math.abs(o.x - this.pX) < 0.55 && o.z > -6.6 && o.z < -5.4) {
                     this.coins.splice(i, 1);
@@ -741,33 +695,10 @@
 
                 if (o.z > 1) { this.coins.splice(i, 1); continue; }
 
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.2, o.z));
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.2, o.z, 0, 0.4));
                 gl.uniform4fv(this.renderer.uc, [1, 0.85, 0, 1]);
                 gl.uniform1f(this.renderer.uGlow, 1.8);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
-            }
-
-            // Power-ups
-            for (let i = this.items.length - 1; i >= 0; i--) {
-                let it = this.items[i];
-                it.z += dynamicSpd;
-
-                if (Math.abs(it.x - this.pX) < 0.65 && it.z > -6.6 && it.z < -5.4) {
-                    if (it.t === 'b') { this.boostTimer = 180; this.slowTimer = 0; }
-                    else if (it.t === 's') { this.slowTimer = 180; this.boostTimer = 0; }
-                    else if (it.t === 'm') { this.magnetTimer = this.magnetUpgraded ? 450 : 300; }
-                    this.input.vibrate(70);
-                    this.items.splice(i, 1);
-                    this.uUI();
-                    continue;
-                }
-
-                if (it.z > 1) { this.items.splice(i, 1); continue; }
-
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(it.x, -0.2, it.z));
-                gl.uniform4fv(this.renderer.uc, it.t === 'b' ? [0, 1, 0.2, 1] : (it.t === 's' ? [1, 0, 1, 1] : [0, 0.8, 1, 1]));
-                gl.uniform1f(this.renderer.uGlow, 2.5);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
+                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
             }
 
             // Obstacles
@@ -819,5 +750,8 @@
     </script>
 </body>
 </html>
+
+
+
 
 
