@@ -67,6 +67,15 @@
         }
         .neon-btn.purple:hover { background: rgba(255, 0, 255, 0.15); }
 
+        .neon-btn.red {
+            border-color: #f00;
+            color: #f00;
+            text-shadow: 0 0 8px #f00;
+            animation: none;
+            box-shadow: 0 0 10px rgba(255,0,0,0.4);
+        }
+        .neon-btn.red:hover { background: rgba(255, 0, 0, 0.15); }
+
         #canvas {
             position: fixed;
             top: 0;
@@ -152,6 +161,31 @@
             text-align: center;
         }
 
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+            max-width: 260px;
+            width: 90%;
+        }
+
+        .keypad-btn {
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #f00;
+            color: #f00;
+            font-size: 20px;
+            font-weight: 900;
+            padding: 14px 0;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            text-shadow: 0 0 6px #f00;
+            box-shadow: 0 0 8px rgba(255,0,0,0.3);
+            pointer-events: auto;
+        }
+        .keypad-btn:active { background: rgba(255,0,0,0.2); transform: scale(0.95); }
+
         .new-best-anim {
             display: inline-block;
             color: #0f0;
@@ -181,9 +215,10 @@
         <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
             Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot Obstacles<br>Use Arrow Keys / Space / F on desktop
         </div>
-        <div>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center;">
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
             <button id="btn-market" class="neon-btn purple">MARKETPLACE</button>
+            <button id="btn-settings" class="neon-btn red">SETTINGS</button>
         </div>
     </div>
 
@@ -207,6 +242,33 @@
         <button id="btn-market-back" class="neon-btn" style="margin-top: 15px;">BACK TO MENU</button>
     </div>
 
+    <!-- SETTINGS OVERLAY -->
+    <div id="settings-menu" class="overlay-screen" style="display: none;">
+        <h2 style="font-size: 32px; color: #f00; text-shadow: 0 0 12px #f00;">SYSTEM WIPE CONFIG</h2>
+        <div style="font-size: 13px; color: #aaa; margin: 8px 0; text-align: center; max-width: 80%;">
+            Enter security pin code to clear all game data and scores:
+        </div>
+        
+        <div id="pin-display" style="font-size: 32px; color: #f00; letter-spacing: 8px; margin: 10px 0; text-shadow: 0 0 10px #f00; min-height: 40px;">_ _ _ _</div>
+
+        <div class="keypad-grid">
+            <button class="keypad-btn" data-val="1">1</button>
+            <button class="keypad-btn" data-val="2">2</button>
+            <button class="keypad-btn" data-val="3">3</button>
+            <button class="keypad-btn" data-val="4">4</button>
+            <button class="keypad-btn" data-val="5">5</button>
+            <button class="keypad-btn" data-val="6">6</button>
+            <button class="keypad-btn" data-val="7">7</button>
+            <button class="keypad-btn" data-val="8">8</button>
+            <button class="keypad-btn" data-val="9">9</button>
+            <button class="keypad-btn" data-val="C" style="border-color:#ff0; color:#ff0; font-size:16px;">CLR</button>
+            <button class="keypad-btn" data-val="0">0</button>
+            <button class="keypad-btn" data-val="X" style="border-color:#0ff; color:#0ff; font-size:16px;">DEL</button>
+        </div>
+
+        <button id="btn-settings-back" class="neon-btn" style="margin-top: 15px;">BACK TO MENU</button>
+    </div>
+
     <script>
     const SafeStorage = {
         data: {},
@@ -217,6 +279,10 @@
         setItem(key, val) {
             try { localStorage.setItem(key, val); }
             catch(e) { this.data[key] = String(val); }
+        },
+        removeItem(key) {
+            try { localStorage.removeItem(key); }
+            catch(e) { delete this.data[key]; }
         }
     };
 
@@ -553,6 +619,7 @@
             this.bossHud = document.getElementById('boss-hud');
             this.mainMenu = document.getElementById('main-menu');
             this.marketMenu = document.getElementById('market-menu');
+            this.settingsMenu = document.getElementById('settings-menu');
             
             this.audio = new AudioSystem();
             this.input = new InputManager(this);
@@ -587,6 +654,7 @@
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
             this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
+            this.enteredPin = '';
             this.lastTime = 0;
             
             this.initUI();
@@ -616,6 +684,54 @@
 
             document.getElementById('btn-market').addEventListener('click', () => this.showMarket());
             document.getElementById('btn-market-back').addEventListener('click', () => this.showMainMenu());
+            
+            document.getElementById('btn-settings').addEventListener('click', () => this.showSettings());
+            document.getElementById('btn-settings-back').addEventListener('click', () => this.showMainMenu());
+
+            // Keypad setup for password "6700"
+            document.querySelectorAll('.keypad-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    let val = btn.getAttribute('data-val');
+                    if (val === 'C') {
+                        this.enteredPin = '';
+                    } else if (val === 'X') {
+                        this.enteredPin = this.enteredPin.slice(0, -1);
+                    } else {
+                        if (this.enteredPin.length < 4) {
+                            this.enteredPin += val;
+                        }
+                    }
+
+                    // Update display
+                    let displayStr = '';
+                    for (let i = 0; i < 4; i++) {
+                        displayStr += (i < this.enteredPin.length ? this.enteredPin[i] : '_') + (i < 3 ? ' ' : '');
+                    }
+                    document.getElementById('pin-display').innerText = displayStr;
+
+                    // Check password
+                    if (this.enteredPin === '6700') {
+                        SafeStorage.removeItem('cyber_high_score');
+                        SafeStorage.removeItem('cyber_credits');
+                        SafeStorage.removeItem('cyber_magnet_up');
+                        SafeStorage.removeItem('cyber_muted');
+                        
+                        this.totalCredits = 0;
+                        this.highScore = 0;
+                        this.magnetUpgraded = false;
+                        this.enteredPin = '';
+                        document.getElementById('pin-display').innerText = '_ _ _ _';
+                        
+                        alert('SYSTEM WIPE COMPLETE: All scores, credits, and upgrades have been reset.');
+                        this.showMainMenu();
+                    } else if (this.enteredPin.length >= 4) {
+                        setTimeout(() => {
+                            this.enteredPin = '';
+                            document.getElementById('pin-display').innerText = '_ _ _ _';
+                        }, 400);
+                    }
+                });
+            });
 
             document.getElementById('buy-magnet').addEventListener('click', () => {
                 if (this.totalCredits >= 100 && !this.magnetUpgraded) {
@@ -641,6 +757,7 @@
             this.inBossFight = false;
             this.mainMenu.style.display = 'flex';
             this.marketMenu.style.display = 'none';
+            this.settingsMenu.style.display = 'none';
             this.hud.style.display = 'none';
             this.bossHud.style.display = 'none';
             document.getElementById('btn-fire').style.display = 'block';
@@ -651,7 +768,16 @@
         showMarket() {
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'flex';
+            this.settingsMenu.style.display = 'none';
             this.updateMarketUI();
+        }
+
+        showSettings() {
+            this.mainMenu.style.display = 'none';
+            this.marketMenu.style.display = 'none';
+            this.settingsMenu.style.display = 'flex';
+            this.enteredPin = '';
+            document.getElementById('pin-display').innerText = '_ _ _ _';
         }
 
         updateMarketUI() {
@@ -690,6 +816,7 @@
             document.getElementById('btn-fire').style.display = 'block';
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
+            this.settingsMenu.style.display = 'none';
             
             this.uUI();
             this.sp();
@@ -831,15 +958,13 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // BULLET UPDATE & BULLET-FIRST COLLISION CHECK LOOP
             for (let i = this.bullets.length - 1; i >= 0; i--) {
                 let b = this.bullets[i];
-                b.z -= 2.5 * dtFactor; // Fast bullet movement
+                b.z -= 2.5 * dtFactor;
 
                 let hitObstacle = false;
                 for (let j = this.obs.length - 1; j >= 0; j--) {
                     let o = this.obs[j];
-                    // Generous lane check + deep capture range so it never skips over
                     if (Math.abs(b.x - o.x) < 1.0 && Math.abs(b.z - o.z) < 3.5) {
                         this.obs.splice(j, 1);
                         hitObstacle = true;
@@ -975,6 +1100,5 @@
     </script>
 </body>
 </html>
-
 
 
