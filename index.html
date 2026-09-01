@@ -705,10 +705,9 @@
         shootLaser() {
             if (this.gO || this.inM) return;
             
-            // Snap bullet directly to current lane center so it hits every time
             this.bullets.push({
                 x: this.lanes[this.cL],
-                z: -6
+                z: -5.5
             });
             this.audio.playLaserSound();
             this.input.vibrate(30);
@@ -832,16 +831,16 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // BULLETS UPDATE & WIDER LANE COLLISION CHECK
+            // BULLET UPDATE & BULLET-FIRST COLLISION CHECK LOOP
             for (let i = this.bullets.length - 1; i >= 0; i--) {
                 let b = this.bullets[i];
-                b.z -= 1.5 * dtFactor;
+                b.z -= 2.5 * dtFactor; // Fast bullet movement
 
                 let hitObstacle = false;
                 for (let j = this.obs.length - 1; j >= 0; j--) {
                     let o = this.obs[j];
-                    // Using a more forgiving hit threshold (1.2 lane width, 2.0 depth range)
-                    if (Math.abs(b.x - o.x) < 1.2 && Math.abs(b.z - o.z) < 2.0) {
+                    // Generous lane check + deep capture range so it never skips over
+                    if (Math.abs(b.x - o.x) < 1.0 && Math.abs(b.z - o.z) < 3.5) {
                         this.obs.splice(j, 1);
                         hitObstacle = true;
                         this.score += 25;
@@ -976,5 +975,6 @@
     </script>
 </body>
 </html>
+
 
 
