@@ -418,10 +418,20 @@
             let cZ = Math.cos(tiltZ), sZ = Math.sin(tiltZ);
             
             return new Float32Array([
-                cY * cZ,        sZ,             -syM,           0,
+                cY * cZ * sY,   sZ,             -syM,           0,
                 syM * .47 - sZ, .88 * sY * cZ,  cY * .47,       0,
                 syM * .88,      -.47 * sY,      cY * .88,       0,
                 x,              y * .88 - z * .47 - 2.3, y * .47 + z * .88 - 5.8, 1
+            ]);
+        }
+
+        // Custom clean matrix specifically for smaller coins
+        coinMat(x, y, z, scale = 0.35) {
+            return new Float32Array([
+                scale, 0,     0,     0,
+                0,     scale, 0,     0,
+                0,     0,     scale, 0,
+                x,     y - 2.3, z - 5.8, 1
             ]);
         }
 
@@ -678,7 +688,7 @@
             gl.uniform1f(this.renderer.uGlow, 2.2);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Classic Coins
+            // Smaller, Sleeker Coins
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
@@ -695,9 +705,9 @@
 
                 if (o.z > 1) { this.coins.splice(i, 1); continue; }
 
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.2, o.z, 0, 0.4));
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.coinMat(o.x, -0.2, o.z, 0.22));
                 gl.uniform4fv(this.renderer.uc, [1, 0.85, 0, 1]);
-                gl.uniform1f(this.renderer.uGlow, 1.8);
+                gl.uniform1f(this.renderer.uGlow, 2.0);
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
             }
 
@@ -750,8 +760,6 @@
     </script>
 </body>
 </html>
-
-
 
 
 
