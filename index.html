@@ -1,763 +1,844 @@
+make ths code so i can see the coins and things
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Run 3D - Remastered</title>
-    <link rel="manifest" href="manifest.json">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Run 3D</title>
+    <!-- Manifest link for PWA / PWABuilder integration -->
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
 
-        body {
-            background: #03030a;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 900;
-        }
-        
-        @keyframes neonPulse {
-            0% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
-            50% { box-shadow: 0 0 25px rgba(0,255,255,0.8); }
-            100% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
-        }
-        
-        @keyframes newBestPulse {
-            0% { transform: scale(1); filter: drop-shadow(0 0 5px #0f0); }
-            50% { transform: scale(1.15); filter: drop-shadow(0 0 20px #0f0); }
-            100% { transform: scale(1); filter: drop-shadow(0 0 5px #0f0); }
-        }
+        body {
+            background: #03030a;
+            overflow: hidden;
+            font-family: sans-serif;
+            font-weight: 900;
+        }
+        
+        @keyframes neonPulse {
+            0% {
+                box-shadow: 0 0 10px rgba(0,255,255,0.4);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(0,255,255,0.8);
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(0,255,255,0.4);
+            }
+        }
+        
+        @keyframes newBestPulse {
+            0% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 5px #0f0);
+            }
+            50% {
+                transform: scale(1.15);
+                filter: drop-shadow(0 0 20px #0f0);
+            }
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 5px #0f0);
+            }
+        }
 
-        .neon-btn {
-            border: 2px solid #0ff;
-            border-radius: 6px;
-            background: #000;
-            color: #0ff;
-            padding: 14px 32px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: 900;
-            animation: neonPulse 2s infinite;
-            transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-            text-shadow: 0 0 8px #0ff;
-            margin: 8px;
-            -webkit-tap-highlight-color: transparent;
-        }
+        .neon-btn {
+            border: 2px solid #0ff;
+            border-radius: 6px;
+            background: #000;
+            color: #0ff;
+            padding: 12px 28px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 900;
+            animation: neonPulse 2s infinite;
+            transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            text-shadow: 0 0 8px #0ff;
+            margin: 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .neon-btn:hover {
-            background: rgba(0, 255, 255, 0.2);
-        }
+        .neon-btn:hover {
+            background: rgba(0, 255, 255, 0.15);
+        }
 
-        .neon-btn:active {
-            transform: scale(0.95);
-        }
+        .neon-btn:active {
+            transform: scale(0.95);
+        }
 
-        .neon-btn.purple {
-            border-color: #f0f;
-            color: #f0f;
-            text-shadow: 0 0 8px #f0f;
-            animation: none;
-            box-shadow: 0 0 10px rgba(255,0,255,0.4);
-        }
+        .neon-btn.purple {
+            border-color: #f0f;
+            color: #f0f;
+            text-shadow: 0 0 8px #f0f;
+            animation: none;
+            box-shadow: 0 0 10px rgba(255,0,255,0.4);
+        }
 
-        .neon-btn.purple:hover {
-            background: rgba(255, 0, 255, 0.2);
-        }
+        .neon-btn.purple:hover {
+            background: rgba(255, 0, 255, 0.15);
+        }
 
-        #canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 10;
-        }
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+        }
 
-        #hud {
-            position: fixed;
-            top: 25px;
-            left: 25px;
-            font-size: 18px;
-            color: #0ff;
-            text-shadow: 0 0 8px #0ff;
-            z-index: 20;
-            display: none;
-            pointer-events: none;
-            letter-spacing: 1px;
-        }
+        #hud {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            font-size: 20px;
+            color: #0ff;
+            text-shadow: 0 0 8px #0ff;
+            z-index: 20;
+            display: none;
+            pointer-events: none;
+        }
 
-        .overlay-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 30;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle, rgba(15,10,35,0.96) 0%, rgba(3,3,10,0.99) 100%);
-            color: #0ff;
-            text-shadow: 0 0 8px #0ff;
-        }
+        .overlay-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, rgba(15,10,35,0.95) 0%, rgba(5,5,15,0.98) 100%);
+            color: #0ff;
+            text-shadow: 0 0 8px #0ff;
+        }
 
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 20px 0;
-            max-width: 500px;
-            width: 90%;
-        }
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+            max-width: 500px;
+            width: 90%;
+        }
 
-        .shop-item {
-            border: 1px solid #0ff;
-            background: rgba(0,255,255,0.05);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
+        .shop-item {
+            border: 1px solid #0ff;
+            background: rgba(0,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
 
-        .new-best-anim {
-            display: inline-block;
-            color: #0f0;
-            font-size: 28px;
-            animation: newBestPulse 1s infinite;
-            margin: 10px 0;
-        }
-    </style>
+        .new-best-anim {
+            display: inline-block;
+            color: #0f0;
+            font-size: 28px;
+            animation: newBestPulse 1s infinite;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <div id="hud"></div>
-
-    <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; animation: none;">🎵 ON</button>
-
-    <div id="main-menu" class="overlay-screen">
-        <h1 style="font-size: 64px; margin: 0; text-shadow: 0 0 20px #0ff, 0 0 40px #0ff; letter-spacing: 4px;">CYBER RUN</h1>
-        <div style="font-size: 14px; color: #f0f; letter-spacing: 6px; margin-bottom: 20px; text-shadow: 0 0 6px #f0f;">3D REMASTERED</div>
-        <div id="menu-high-score" style="color: #ffd700; margin: 5px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
-        <div id="menu-credits" style="color: #0ff; margin-bottom: 20px; font-size: 18px;">TOTAL CREDITS: 0</div>
-        <div style="font-size: 14px; color: #aaa; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%; line-height: 1.5;">
-            Swipe Left/Right to change lanes • Swipe Up to Jump<br>Use Arrow Keys / Spacebar on desktop
-        </div>
-        <div>
-            <button id="btn-play" class="neon-btn">PLAY GAME</button>
-            <button id="btn-market" class="neon-btn purple">MARKETPLACE</button>
-        </div>
-    </div>
-
-    <div id="market-menu" class="overlay-screen" style="display: none;">
-        <h2 style="font-size: 38px; color: #f0f; text-shadow: 0 0 12px #f0f;">CYBER MARKET</h2>
-        <div id="market-credits" style="color: #ffd700; font-size: 20px; margin: 10px 0; text-shadow: 0 0 6px #ffd700;">CREDITS: 0</div>
-        
-        <div class="shop-grid">
-            <div class="shop-item">
-                <div style="color:#0f0; font-size:16px;">Magnet Boost</div>
-                <div style="font-size: 12px; color:#aaa; margin: 5px 0;">Extended field duration (+40%)</div>
-                <button id="buy-magnet" class="neon-btn" style="font-size:14px; padding:6px 12px; margin-top:5px;">100 CR</button>
-            </div>
-            <div class="shop-item">
-                <div style="color:#f0f; font-size:16px;">Cyan Trail FX</div>
-                <div style="font-size: 12px; color:#aaa; margin: 5px 0;">Neon Particle Cosmetic</div>
-                <button id="buy-skin" class="neon-btn purple" style="font-size:14px; padding:6px 12px; margin-top:5px;">250 CR</button>
-            </div>
-        </div>
-        <button id="btn-market-back" class="neon-btn" style="margin-top: 15px;">BACK TO MENU</button>
-    </div>
-
-    <script>
-    const SafeStorage = {
-        data: {},
-        getItem(key) {
-            try { return localStorage.getItem(key); }
-            catch(e) { return this.data[key] || null; }
-        },
-        setItem(key, val) {
-            try { localStorage.setItem(key, val); }
-            catch(e) { this.data[key] = String(val); }
-        }
-    };
-
-    class AudioSystem {
-        constructor() {
-            this.ctx = null;
-            this.interval = null;
-            this.melody = [110, 130, 146, 165, 196, 220, 196, 165, 220, 247, 220, 196];
-            this.step = 0;
-            this.coinCombo = 0;
-            this.tempo = 160;
-            this.isMuted = SafeStorage.getItem('cyber_muted') === 'true';
-        }
-
-        init() {
-            if (this.ctx) return;
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            this.ctx = new AudioCtx();
-            this.startMusic();
-        }
-
-        toggleMute() {
-            this.isMuted = !this.isMuted;
-            SafeStorage.setItem('cyber_muted', this.isMuted.toString());
-            if (!this.isMuted && !this.ctx) {
-                this.init();
-            } else if (!this.isMuted && this.ctx && this.ctx.state === 'suspended') {
-                this.ctx.resume();
-            }
-            return this.isMuted;
-        }
-
-        startMusic() {
-            if (this.interval) clearInterval(this.interval);
-            this.interval = setInterval(() => {
-                if (!this.ctx || this.isMuted) return;
-                try {
-                    let o = this.ctx.createOscillator();
-                    let g = this.ctx.createGain();
-                    let t = this.ctx.currentTime;
-                    
-                    o.type = 'sawtooth';
-                    o.frequency.setValueAtTime(this.melody[this.step % this.melody.length], t);
-                    
-                    g.gain.setValueAtTime(0.05, t);
-                    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-                    
-                    o.connect(g);
-                    g.connect(this.ctx.destination);
-                    
-                    o.start(t);
-                    o.stop(t + 0.35);
-                    this.step++;
-                } catch(e) {}
-            }, this.tempo);
-        }
-
-        setTempo(speedRatio) {
-            let newTempo = Math.max(80, 160 - (speedRatio * 40));
-            if (Math.abs(this.tempo - newTempo) > 10) {
-                this.tempo = newTempo;
-                if (this.ctx) this.startMusic();
-            }
-        }
-
-        playCoinSound() {
-            if (!this.ctx || this.isMuted) return;
-            if (this.ctx.state === 'suspended') this.ctx.resume();
-            try {
-                let o = this.ctx.createOscillator();
-                let g = this.ctx.createGain();
-                let t = this.ctx.currentTime;
-                let baseFreq = 520 + (this.coinCombo * 70);
-                
-                o.type = 'sine';
-                o.frequency.setValueAtTime(Math.min(baseFreq, 1800), t);
-                
-                g.gain.setValueAtTime(0.12, t);
-                g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-                
-                o.connect(g);
-                g.connect(this.ctx.destination);
-                
-                o.start(t);
-                o.stop(t + 0.18);
-                this.coinCombo++;
-            } catch(e) {}
-        }
-
-        resetCombo() { this.coinCombo = 0; }
-    }
-
-    class InputManager {
-        constructor(game) {
-            this.game = game;
-            this.touchX = 0;
-            this.touchY = 0;
-            this.bindEvents();
-        }
-
-        vibrate(pattern) {
-            if ('vibrate' in navigator) {
-                try { navigator.vibrate(pattern); } catch(e) {}
-            }
-        }
-
-        bindEvents() {
-            window.addEventListener('touchstart', e => {
-                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
-                this.touchX = e.touches[0].clientX;
-                this.touchY = e.touches[0].clientY;
-            }, { passive: true });
-
-            window.addEventListener('touchend', e => {
-                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
-                if (this.game.gO) { this.game.restart(); return; }
-                if (this.game.inM) return;
-                
-                let dx = e.changedTouches[0].clientX - this.touchX;
-                let dy = e.changedTouches[0].clientY - this.touchY;
-                
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    if (dx > 30 && this.game.cL < 2) this.game.cL++;
-                    else if (dx < -30 && this.game.cL > 0) this.game.cL--;
-                } else {
-                    if (dy < -30 && !this.game.isJ) { 
-                        this.game.isJ = 1; 
-                        this.game.jV = 0.19; 
-                    }
-                }
-            }, { passive: true });
-
-            window.addEventListener('keydown', e => {
-                if (e.key === 'Escape') { this.game.showMainMenu(); return; }
-                if (this.game.gO && (e.key === ' ' || e.key === 'Spacebar')) { this.game.restart(); return; }
-                if (this.game.gO || this.game.inM) return;
-
-                if (e.key === 'ArrowLeft' && this.game.cL > 0) this.game.cL--;
-                if (e.key === 'ArrowRight' && this.game.cL < 2) this.game.cL++;
-                if ((e.key === ' ' || e.key === 'ArrowUp') && !this.game.isJ) {
-                    this.game.isJ = 1;
-                    this.game.jV = 0.19;
-                }
-            });
-        }
-    }
-
-    class WebGLRenderer {
-        constructor(canvas) {
-            this.c = canvas;
-            this.gl = canvas.getContext('webgl', { antialias: false, depth: true });
-            this.shakeTimer = 0;
-            if (!this.gl) alert('WebGL not supported.');
-            this.initShaders();
-            this.initBuffers();
-        }
-
-        initShaders() {
-            const gl = this.gl;
-            const vCode = `
-                attribute vec4 p;
-                uniform mat4 m, pr;
-                varying float h;
-                varying float vDepth;
-                void main() {
-                    vec4 pos = pr * m * p;
-                    gl_Position = pos;
-                    h = p.y + 0.5;
-                    vDepth = pos.z;
-                }
-            `;
-            const fCode = `
-                precision mediump float;
-                uniform vec4 c;
-                uniform float uGlow;
-                varying float h;
-                varying float vDepth;
-                void main() {
-                    vec3 emissive = c.rgb * (0.5 + h * 0.5) * uGlow;
-                    vec3 fogColor = vec3(0.02, 0.01, 0.06);
-                    float fogFactor = clamp((40.0 - vDepth) / (40.0 - 4.0), 0.0, 1.0);
-                    vec3 finalColor = mix(fogColor, emissive, fogFactor);
-                    gl_FragColor = vec4(finalColor, c.a);
-                }
-            `;
-            let v = gl.createShader(gl.VERTEX_SHADER);
-            let f = gl.createShader(gl.FRAGMENT_SHADER);
-            gl.shaderSource(v, vCode); gl.compileShader(v);
-            gl.shaderSource(f, fCode); gl.compileShader(f);
-            
-            this.P = gl.createProgram();
-            gl.attachShader(this.P, v);
-            gl.attachShader(this.P, f);
-            gl.linkProgram(this.P);
-            gl.useProgram(this.P);
-
-            this.ap = gl.getAttribLocation(this.P, 'p');
-            this.um = gl.getUniformLocation(this.P, 'm');
-            this.up = gl.getUniformLocation(this.P, 'pr');
-            this.uc = gl.getUniformLocation(this.P, 'c');
-            this.uGlow = gl.getUniformLocation(this.P, 'uGlow');
-        }
-
-        initBuffers() {
-            const gl = this.gl;
-            this.vB = gl.createBuffer();
-            this.iB = gl.createBuffer();
-            
-            const vertices = new Float32Array([
-                // Cube mesh (0-23) - used for player and obstacles
-                -0.4,-0.4,0.4,  0.4,-0.4,0.4,  0.4,0.4,0.4, -0.4,0.4,0.4,
-                -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4, 0.4,-0.4,-0.4,
-                -0.4,0.4,-0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,0.4,-0.4,
-                -0.4,-0.4,-0.4, 0.4,-0.4,-0.4, 0.4,-0.4,0.4, -0.4,-0.4,0.4,
-                -0.4,-0.4,0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,-0.4,0.4,
-                -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4,  0.4,-0.4,-0.4
-            ]);
-
-            const indices = new Uint16Array([
-                0,1,2, 0,2,3,    4,5,6, 4,6,7,
-                8,9,10, 8,10,11,    12,13,14, 12,14,15,
-                16,17,18, 16,18,19, 20,21,22, 20,22,23
-            ]);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vB);
-            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.iB);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-        }
-
-        mat(x, y, z, rY = 0, sY = 1, tiltZ = 0) {
-            let syM = Math.sin(rY), cY = Math.cos(rY);
-            let cZ = Math.cos(tiltZ), sZ = Math.sin(tiltZ);
-            
-            return new Float32Array([
-                cY * cZ * sY,   sZ,             -syM,           0,
-                syM * .47 - sZ, .88 * sY * cZ,  cY * .47,       0,
-                syM * .88,      -.47 * sY,      cY * .88,       0,
-                x,              y * .88 - z * .47 - 2.3, y * .47 + z * .88 - 5.8, 1
-            ]);
-        }
-
-        // Custom clean matrix specifically for smaller coins
-        coinMat(x, y, z, scale = 0.35) {
-            return new Float32Array([
-                scale, 0,     0,     0,
-                0,     scale, 0,     0,
-                0,     0,     scale, 0,
-                x,     y - 2.3, z - 5.8, 1
-            ]);
-        }
-
-        render(dt) {
-            const gl = this.gl;
-            if (this.c.width !== window.innerWidth || this.c.height !== window.innerHeight) {
-                this.c.width = window.innerWidth;
-                this.c.height = window.innerHeight;
-                gl.viewport(0, 0, this.c.width, this.c.height);
-            }
-            gl.clearColor(0.02, 0.01, 0.06, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.enable(gl.DEPTH_TEST);
-
-            let f = 1 / Math.tan(0.42);
-            let nf = 1 / (0.1 - 100);
-            let proj = new Float32Array([
-                f / (this.c.width / this.c.height), 0, 0, 0,
-                0, f, 0, 0,
-                0, 0, 100.1 * nf, -1,
-                0, 0, 20 * nf, 0
-            ]);
-
-            if (this.shakeTimer > 0) {
-                this.shakeTimer -= dt;
-                proj[12] += (Math.random() - 0.5) * 0.2;
-                proj[13] += (Math.random() - 0.5) * 0.2;
-            }
-
-            gl.uniformMatrix4fv(this.up, false, proj);
-            gl.vertexAttribPointer(this.ap, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(this.ap);
-        }
-    }
-
-    class CyberRunGame {
-        constructor() {
-            this.canvas = document.getElementById('canvas');
-            this.hud = document.getElementById('hud');
-            this.mainMenu = document.getElementById('main-menu');
-            this.marketMenu = document.getElementById('market-menu');
-            
-            this.audio = new AudioSystem();
-            this.input = new InputManager(this);
-            this.renderer = new WebGLRenderer(this.canvas);
-            
-            this.lanes = [-1.4, 0, 1.4];
-            this.cL = 1;
-            this.pX = 0;
-            this.pY = -0.4;
-            this.jV = 0;
-            this.isJ = 0;
-            
-            this.obs = [];
-            this.coins = [];
-            this.particles = [];
-            
-            this.score = 0;
-            this.coinsCount = 0;
-            this.spd = 0.32;
-            this.gO = 0;
-            this.inM = 1;
-            
-            this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
-            this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
-            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
-            this.skinCyanUnlocked = SafeStorage.getItem('cyber_skin_cyan') === 'true';
-            
-            this.lastTime = 0;
-            this.initUI();
-            this.showMainMenu();
-        }
-
-        initUI() {
-            let musicBtn = document.getElementById('btn-music');
-            const updateMusicBtn = () => {
-                musicBtn.innerText = this.audio.isMuted ? '🎵 OFF' : '🎵 ON';
-                musicBtn.style.color = this.audio.isMuted ? '#888' : '#0ff';
-                musicBtn.style.borderColor = this.audio.isMuted ? '#888' : '#0ff';
-            };
-            updateMusicBtn();
-            musicBtn.onclick = () => { this.audio.toggleMute(); updateMusicBtn(); };
-
-            document.getElementById('btn-play').onclick = () => {
-                this.audio.init();
-                this.inM = 0;
-                this.init();
-                requestAnimationFrame(t => this.loop(t));
-            };
-
-            document.getElementById('btn-market').onclick = () => this.showMarket();
-            document.getElementById('btn-market-back').onclick = () => this.showMainMenu();
-
-            document.getElementById('buy-magnet').onclick = () => {
-                if (this.totalCredits >= 100 && !this.magnetUpgraded) {
-                    this.totalCredits -= 100;
-                    this.magnetUpgraded = true;
-                    SafeStorage.setItem('cyber_credits', this.totalCredits);
-                    SafeStorage.setItem('cyber_magnet_up', 'true');
-                    this.updateMarketUI();
-                }
-            };
-
-            document.getElementById('buy-skin').onclick = () => {
-                if (this.totalCredits >= 250 && !this.skinCyanUnlocked) {
-                    this.totalCredits -= 250;
-                    this.skinCyanUnlocked = true;
-                    SafeStorage.setItem('cyber_credits', this.totalCredits);
-                    SafeStorage.setItem('cyber_skin_cyan', 'true');
-                    this.updateMarketUI();
-                }
-            };
-
-            this.uUI = () => {
-                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}`;
-            };
-        }
-
-        showMainMenu() {
-            this.inM = 1;
-            this.gO = 0;
-            this.mainMenu.style.display = 'flex';
-            this.marketMenu.style.display = 'none';
-            this.hud.style.display = 'none';
-            document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
-            document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
-        }
-
-        showMarket() {
-            this.mainMenu.style.display = 'none';
-            this.marketMenu.style.display = 'flex';
-            this.updateMarketUI();
-        }
-
-        updateMarketUI() {
-            document.getElementById('market-credits').innerText = `CREDITS: ${this.totalCredits}`;
-            let buyMagBtn = document.getElementById('buy-magnet');
-            if (this.magnetUpgraded) {
-                buyMagBtn.innerText = 'OWNED'; buyMagBtn.disabled = true; buyMagBtn.style.opacity = '0.5';
-            }
-            let buySkinBtn = document.getElementById('buy-skin');
-            if (this.skinCyanUnlocked) {
-                buySkinBtn.innerText = 'OWNED'; buySkinBtn.disabled = true; buySkinBtn.style.opacity = '0.5';
-            }
-        }
-
-        init() {
-            this.cL = 1;
-            this.pX = 0;
-            this.pY = -0.4;
-            this.jV = 0;
-            this.isJ = 0;
-            this.obs = [];
-            this.coins = [];
-            this.particles = [];
-            this.score = 0;
-            this.coinsCount = 0;
-            this.spd = 0.32;
-            this.gO = 0;
-            this.audio.resetCombo();
-            
-            this.hud.style.display = 'block';
-            this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:18px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
-            this.mainMenu.style.display = 'none';
-            this.marketMenu.style.display = 'none';
-            
-            this.uUI();
-            this.sp();
-            this.spC();
-        }
-
-        restart() {
-            this.init();
-            requestAnimationFrame(t => this.loop(t));
-        }
-
-        sp() {
-            if (this.gO || this.inM) return;
-            this.obs.push({
-                x: this.lanes[Math.floor(Math.random() * 3)],
-                z: -45,
-                hScale: Math.random() > 0.4 ? 1.8 : 1.0
-            });
-            setTimeout(() => this.sp(), Math.random() * 350 + 300);
-        }
-
-        spC() {
-            if (this.gO || this.inM) return;
-            if (Math.random() > 0.25) {
-                this.coins.push({
-                    x: this.lanes[Math.floor(Math.random() * 3)],
-                    z: -45
-                });
-            }
-            setTimeout(() => this.spC(), 250);
-        }
-
-        loop(timestamp) {
-            if (this.gO || this.inM) return;
-            requestAnimationFrame(t => this.loop(t));
-
-            let dt = this.lastTime ? (timestamp - this.lastTime) / 1000 : 0.016;
-            this.lastTime = timestamp;
-            if (dt > 0.1) dt = 0.1;
-            let dtFactor = dt * 60;
-
-            this.renderer.render(dt);
-
-            let dynamicSpd = (this.spd + Math.sin(this.score * 0.01) * 0.06) * dtFactor;
-            this.audio.setTempo(this.spd);
-
-            this.pX += (this.lanes[this.cL] - this.pX) * (0.25 * dtFactor);
-            let camTiltZ = -this.pX * 0.06;
-
-            if (this.isJ) {
-                this.pY += this.jV * dtFactor;
-                this.jV -= 0.013 * dtFactor;
-                if (this.pY <= -0.4) {
-                    this.pY = -0.4;
-                    this.isJ = 0;
-                }
-            }
-
-            // Spawn trail particle
-            if (Math.random() > 0.3) {
-                this.particles.push({
-                    x: this.pX + (Math.random() - 0.5) * 0.2,
-                    y: this.pY,
-                    z: -6,
-                    life: 20
-                });
-            }
-
-            const gl = this.renderer.gl;
-
-            // Render Particle Trail
-            for (let i = this.particles.length - 1; i >= 0; i--) {
-                let pt = this.particles[i];
-                pt.z += dynamicSpd * 0.5;
-                pt.life -= dtFactor;
-                if (pt.life <= 0 || pt.z > 1) {
-                    this.particles.splice(i, 1);
-                    continue;
-                }
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(pt.x, pt.y, pt.z));
-                gl.uniform4fv(this.renderer.uc, this.skinCyanUnlocked ? [0, 1, 1, pt.life / 20] : [1, 0, 1, pt.life / 20]);
-                gl.uniform1f(this.renderer.uGlow, 2.0);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
-            }
-
-            // Render Player Avatar Block
-            gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
-            gl.uniform4fv(this.renderer.uc, this.skinCyanUnlocked ? [0, 1, 1, 1] : [0, 0.7, 1, 1]);
-            gl.uniform1f(this.renderer.uGlow, 2.2);
-            gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
-
-            // Smaller, Sleeker Coins
-            for (let i = this.coins.length - 1; i >= 0; i--) {
-                let o = this.coins[i];
-                o.z += dynamicSpd;
-
-                if (Math.abs(o.x - this.pX) < 0.55 && o.z > -6.6 && o.z < -5.4) {
-                    this.coins.splice(i, 1);
-                    this.coinsCount++;
-                    this.score += 50;
-                    this.audio.playCoinSound();
-                    this.input.vibrate(40);
-                    this.uUI();
-                    continue;
-                }
-
-                if (o.z > 1) { this.coins.splice(i, 1); continue; }
-
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.coinMat(o.x, -0.2, o.z, 0.22));
-                gl.uniform4fv(this.renderer.uc, [1, 0.85, 0, 1]);
-                gl.uniform1f(this.renderer.uGlow, 2.0);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
-            }
-
-            // Obstacles
-            for (let i = this.obs.length - 1; i >= 0; i--) {
-                let o = this.obs[i];
-                o.z += dynamicSpd;
-
-                if (Math.abs(o.x - this.pX) < 0.65 && o.z > -6.6 && o.z < -5.4 && this.pY < 0.2) {
-                    this.gO = 1;
-                    this.renderer.shakeTimer = 0.2;
-                    this.input.vibrate([120, 60, 120]);
-
-                    this.totalCredits += this.coinsCount;
-                    SafeStorage.setItem('cyber_credits', this.totalCredits);
-
-                    let newBest = false;
-                    if (Math.floor(this.score) > this.highScore) {
-                        this.highScore = Math.floor(this.score);
-                        SafeStorage.setItem('cyber_high_score', this.highScore);
-                        newBest = true;
-                    }
-
-                    this.hud.innerHTML = `GAME OVER<br>` + 
-                         (newBest ? `<span class="new-best-anim">NEW BEST!</span><br>` : '') + 
-                         `<span style="font-size:18px;color:#888;">SCORE: ${Math.floor(this.score)}</span><br>` + 
-                         `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px;">RETRY</button>` + 
-                         `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px;">MENU</button>`;
-                    this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#f14;font-size:44px;text-align:center;pointer-events:auto;';
-                    return;
-                }
-
-                if (o.z > 1) {
-                    this.obs.splice(i, 1);
-                    this.score += 15;
-                    this.spd += 0.0025;
-                    this.uUI();
-                    continue;
-                }
-
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.4, o.z, 0, o.hScale));
-                gl.uniform4fv(this.renderer.uc, [1, 0.05, 0.3, 1]);
-                gl.uniform1f(this.renderer.uGlow, 1.8);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
-            }
-        }
-    }
-
-    window.game = new CyberRunGame();
-    </script>
+    <canvas id="canvas"></canvas>
+    <div id="hud"></div>
+
+    <!-- GLOBAL AUDIO TOGGLE BUTTON -->
+    <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; animation: none;">🎵 ON</button>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="main-menu" class="overlay-screen">
+        <h1 style="font-size: 56px; margin: 0; text-shadow: 0 0 15px #0ff; letter-spacing: 2px;">CYBER RUN</h1>
+        <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
+        <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
+        <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
+            Swipe Left/Right to change lanes • Swipe Up to Jump<br>Use Arrow Keys / Spacebar on desktop
+        </div>
+        <div>
+            <button id="btn-play" class="neon-btn">PLAY GAME</button>
+            <button id="btn-market" class="neon-btn purple">MARKETPLACE</button>
+        </div>
+    </div>
+
+    <!-- MARKETPLACE OVERLAY -->
+    <div id="market-menu" class="overlay-screen" style="display: none;">
+        <h2 style="font-size: 38px; color: #f0f; text-shadow: 0 0 12px #f0f;">CYBER MARKET</h2>
+        <div id="market-credits" style="color: #ffd700; font-size: 20px; margin: 10px 0; text-shadow: 0 0 6px #ffd700;">CREDITS: 0</div>
+        
+        <div class="shop-grid">
+            <div class="shop-item">
+                <div style="color:#0f0; font-size:16px;">Magnet Boost</div>
+                <div style="font-size: 12px; color:#aaa; margin: 5px 0;">Extended field duration (+40%)</div>
+                <button id="buy-magnet" class="neon-btn" style="font-size:14px; padding:6px 12px; margin-top:5px;">100 CR</button>
+            </div>
+            <div class="shop-item">
+                <div style="color:#f0f; font-size:16px;">Cyan Trail</div>
+                <div style="font-size: 12px; color:#aaa; margin: 5px 0;">Neon Particle Cosmetic</div>
+                <button id="buy-skin" class="neon-btn purple" style="font-size:14px; padding:6px 12px; margin-top:5px;">250 CR</button>
+            </div>
+        </div>
+        <button id="btn-market-back" class="neon-btn" style="margin-top: 15px;">BACK TO MENU</button>
+    </div>
+
+    <script>
+    /**
+     * Safe Storage Wrapper to prevent LocalStorage security block exceptions in isolated/sandboxed contexts.
+     */
+    const SafeStorage = {
+        data: {},
+        getItem(key) {
+            try { return localStorage.getItem(key); }
+            catch(e) { return this.data[key] || null; }
+        },
+        setItem(key, val) {
+            try { localStorage.setItem(key, val); }
+            catch(e) { this.data[key] = String(val); }
+        }
+    };
+
+    /**
+     * Web Audio API Synthesizer & Sound FX Engine
+     */
+    class AudioSystem {
+        constructor() {
+            this.ctx = null;
+            this.interval = null;
+            this.melody = [110, 130, 146, 165, 196, 220, 196, 165];
+            this.step = 0;
+            this.coinCombo = 0;
+            this.tempo = 180;
+            this.isMuted = SafeStorage.getItem('cyber_muted') === 'true';
+        }
+
+        init() {
+            if (this.ctx) return;
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+            this.startMusic();
+        }
+
+        toggleMute() {
+            this.isMuted = !this.isMuted;
+            SafeStorage.setItem('cyber_muted', this.isMuted.toString());
+            if (!this.isMuted && !this.ctx) {
+                this.init();
+            } else if (!this.isMuted && this.ctx && this.ctx.state === 'suspended') {
+                this.ctx.resume();
+            }
+            return this.isMuted;
+        }
+
+        startMusic() {
+            if (this.interval) clearInterval(this.interval);
+            this.interval = setInterval(() => {
+                if (!this.ctx || this.isMuted) return;
+                try {
+                    let o = this.ctx.createOscillator();
+                    let g = this.ctx.createGain();
+                    let t = this.ctx.currentTime;
+                    
+                    o.type = 'sawtooth';
+                    o.frequency.setValueAtTime(this.melody[this.step % this.melody.length], t);
+                    
+                    g.gain.setValueAtTime(0.04, t);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+                    
+                    o.connect(g);
+                    g.connect(this.ctx.destination);
+                    
+                    o.start(t);
+                    o.stop(t + 0.4);
+                    this.step++;
+                } catch(e) {
+                    // Audio context safety catch
+                }
+            }, this.tempo);
+        }
+
+        setTempo(speedRatio) {
+            let newTempo = Math.max(90, 180 - (speedRatio * 50));
+            if (Math.abs(this.tempo - newTempo) > 10) {
+                this.tempo = newTempo;
+                if (this.ctx) this.startMusic();
+            }
+        }
+
+        playCoinSound() {
+            if (!this.ctx || this.isMuted) return;
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            try {
+                let o = this.ctx.createOscillator();
+                let g = this.ctx.createGain();
+                let t = this.ctx.currentTime;
+                let baseFreq = 440 + (this.coinCombo * 60);
+                
+                o.type = 'sine';
+                o.frequency.setValueAtTime(Math.min(baseFreq, 1600), t);
+                
+                g.gain.setValueAtTime(0.1, t);
+                g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                
+                o.connect(g);
+                g.connect(this.ctx.destination);
+                
+                o.start(t);
+                o.stop(t + 0.15);
+                this.coinCombo++;
+            } catch(e) {}
+        }
+
+        resetCombo() {
+            this.coinCombo = 0;
+        }
+    }
+
+    /**
+     * Keyboard and Mobile Touch Control Handler
+     */
+    class InputManager {
+        constructor(game) {
+            this.game = game;
+            this.touchX = 0;
+            this.touchY = 0;
+            this.bindEvents();
+        }
+
+        vibrate(pattern) {
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate(pattern); } catch(e) {}
+            }
+        }
+
+        bindEvents() {
+            window.addEventListener('touchstart', e => {
+                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
+                this.touchX = e.touches[0].clientX;
+                this.touchY = e.touches[0].clientY;
+            }, { passive: true });
+
+            window.addEventListener('touchend', e => {
+                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
+                if (this.game.gO) { this.game.restart(); return; }
+                if (this.game.inM) return;
+                
+                let dx = e.changedTouches[0].clientX - this.touchX;
+                let dy = e.changedTouches[0].clientY - this.touchY;
+                
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > 30 && this.game.cL < 2) {
+                        this.game.cL++;
+                    } else if (dx < -30 && this.game.cL > 0) {
+                        this.game.cL--;
+                    }
+                } else {
+                    if (dy < -30 && !this.game.isJ) { 
+                        this.game.isJ = 1; 
+                        this.game.jV = 0.17; 
+                    }
+                }
+            }, { passive: true });
+
+            window.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    this.game.showMainMenu();
+                    return;
+                }
+                if (this.game.gO && (e.key === ' ' || e.key === 'Spacebar')) {
+                    this.game.restart();
+                    return;
+                }
+                if (this.game.gO || this.game.inM) return;
+
+                if (e.key === 'ArrowLeft' && this.game.cL > 0) {
+                    this.game.cL--;
+                }
+                if (e.key === 'ArrowRight' && this.game.cL < 2) {
+                    this.game.cL++;
+                }
+                if ((e.key === ' ' || e.key === 'ArrowUp') && !this.game.isJ) {
+                    this.game.isJ = 1;
+                    this.game.jV = 0.17;
+                }
+            });
+        }
+    }
+
+    /**
+     * Lightweight WebGL Custom Graphics Renderer Engine
+     */
+    class WebGLRenderer {
+        constructor(canvas) {
+            this.c = canvas;
+            this.gl = canvas.getContext('webgl', { antialias: false, depth: true });
+            this.shakeTimer = 0;
+            if (!this.gl) {
+                alert('WebGL is not supported on your device or browser.');
+            }
+            this.initShaders();
+            this.initBuffers();
+        }
+
+        initShaders() {
+            const gl = this.gl;
+            const vCode = `
+                attribute vec4 p;
+                uniform mat4 m, pr;
+                varying float h;
+                varying float vDepth;
+                void main() {
+                    vec4 pos = pr * m * p;
+                    gl_Position = pos;
+                    h = p.y + 0.5;
+                    vDepth = pos.z;
+                }
+            `;
+            const fCode = `
+                precision mediump float;
+                uniform vec4 c;
+                uniform float uGlow;
+                varying float h;
+                varying float vDepth;
+                void main() {
+                    vec3 emissive = c.rgb * (0.4 + h * 0.6) * uGlow;
+                    vec3 fogColor = vec3(0.02, 0.01, 0.05);
+                    float fogFactor = clamp((35.0 - vDepth) / (35.0 - 5.0), 0.0, 1.0);
+                    vec3 finalColor = mix(fogColor, emissive, fogFactor);
+                    gl_FragColor = vec4(finalColor, c.a);
+                }
+            `;
+            let v = gl.createShader(gl.VERTEX_SHADER);
+            let f = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(v, vCode); gl.compileShader(v);
+            gl.shaderSource(f, fCode); gl.compileShader(f);
+            
+            this.P = gl.createProgram();
+            gl.attachShader(this.P, v);
+            gl.attachShader(this.P, f);
+            gl.linkProgram(this.P);
+            gl.useProgram(this.P);
+
+            this.ap = gl.getAttribLocation(this.P, 'p');
+            this.um = gl.getUniformLocation(this.P, 'm');
+            this.up = gl.getUniformLocation(this.P, 'pr');
+            this.uc = gl.getUniformLocation(this.P, 'c');
+            this.uGlow = gl.getUniformLocation(this.P, 'uGlow');
+        }
+
+        initBuffers() {
+            const gl = this.gl;
+            this.vB = gl.createBuffer();
+            this.iB = gl.createBuffer();
+            
+            // Comprehensive geometry vertex array (Cubes, Pyramids, HUD assets)
+            const vertices = new Float32Array([
+                // Cube mesh for obstacles / player model
+                -0.4,-0.4,0.4,  0.4,-0.4,0.4,  0.4,0.4,0.4, -0.4,0.4,0.4,
+                -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4, 0.4,-0.4,-0.4,
+                -0.4,0.4,-0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,0.4,-0.4,
+                -0.4,-0.4,-0.4, 0.4,-0.4,-0.4, 0.4,-0.4,0.4, -0.4,-0.4,0.4,
+                // Diamond/Coin mesh components
+                -0.03,0,-1,     0.03,0,-1,     0.03,0,1,    -0.03,0,1,
+                -0.15,-0.15,0,  0.15,-0.15,0,  0.15,0.15,0,  -0.15,0.15,0
+            ]);
+
+            const indices = new Uint16Array([
+                0,1,2, 0,2,3,       4,5,6, 4,6,7,
+                8,9,10, 8,10,11,    12,13,14, 12,14,15,
+                16,17,18, 16,18,19, 20,21,22, 20,22,23
+            ]);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.vB);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.iB);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+        }
+
+        mat(x, y, z, rY = 0, sY = 1, tiltZ = 0) {
+            let syM = Math.sin(rY), cY = Math.cos(rY);
+            let cZ = Math.cos(tiltZ), sZ = Math.sin(tiltZ);
+            
+            return new Float32Array([
+                cY * cZ,        sZ,             -syM,           0,
+                syM * .47 - sZ, .88 * sY * cZ,  cY * .47,       0,
+                syM * .88,      -.47 * sY,      cY * .88,       0,
+                x,              y * .88 - z * .47 - 2.3, y * .47 + z * .88 - 5.8, 1
+            ]);
+        }
+
+        render(dt) {
+            const gl = this.gl;
+            if (this.c.width !== window.innerWidth || this.c.height !== window.innerHeight) {
+                this.c.width = window.innerWidth;
+                this.c.height = window.innerHeight;
+                gl.viewport(0, 0, this.c.width, this.c.height);
+            }
+            gl.clearColor(0.02, 0.01, 0.05, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.enable(gl.DEPTH_TEST);
+
+            let f = 1 / Math.tan(0.42);
+            let nf = 1 / (0.1 - 100);
+            let proj = new Float32Array([
+                f / (this.c.width / this.c.height), 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, 100.1 * nf, -1,
+                0, 0, 20 * nf, 0
+            ]);
+
+            if (this.shakeTimer > 0) {
+                this.shakeTimer -= dt;
+                proj[12] += (Math.random() - 0.5) * 0.15;
+                proj[13] += (Math.random() - 0.5) * 0.15;
+            }
+
+            gl.uniformMatrix4fv(this.up, false, proj);
+            gl.vertexAttribPointer(this.ap, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(this.ap);
+        }
+    }
+
+    /**
+     * Main Core Gameplay Loop and State Manager
+     */
+    class CyberRunGame {
+        constructor() {
+            this.canvas = document.getElementById('canvas');
+            this.hud = document.getElementById('hud');
+            this.mainMenu = document.getElementById('main-menu');
+            this.marketMenu = document.getElementById('market-menu');
+            
+            this.audio = new AudioSystem();
+            this.input = new InputManager(this);
+            this.renderer = new WebGLRenderer(this.canvas);
+            
+            this.lanes = [-1.4, 0, 1.4];
+            this.cL = 1;
+            this.pX = 0;
+            this.pY = -0.4;
+            this.jV = 0;
+            this.isJ = 0;
+            
+            this.obs = [];
+            this.coins = [];
+            this.items = [];
+            
+            this.score = 0;
+            this.coinsCount = 0;
+            this.spd = 0.30;
+            this.gO = 0;
+            this.inM = 1;
+            
+            this.boostTimer = 0;
+            this.slowTimer = 0;
+            this.magnetTimer = 0;
+            
+            this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
+            this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
+            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
+            this.lastTime = 0;
+            
+            this.initUI();
+            this.showMainMenu();
+        }
+
+        initUI() {
+            let musicBtn = document.getElementById('btn-music');
+            const updateMusicBtn = () => {
+                musicBtn.innerText = this.audio.isMuted ? '🎵 OFF' : '🎵 ON';
+                musicBtn.style.color = this.audio.isMuted ? '#888' : '#0ff';
+                musicBtn.style.borderColor = this.audio.isMuted ? '#888' : '#0ff';
+                musicBtn.style.textShadow = this.audio.isMuted ? 'none' : '0 0 8px #0ff';
+            };
+            updateMusicBtn();
+            
+            musicBtn.onclick = () => {
+                this.audio.toggleMute();
+                updateMusicBtn();
+            };
+
+            document.getElementById('btn-play').onclick = () => {
+                this.audio.init();
+                this.inM = 0;
+                this.init();
+                requestAnimationFrame(t => this.loop(t));
+            };
+
+            document.getElementById('btn-market').onclick = () => this.showMarket();
+            document.getElementById('btn-market-back').onclick = () => this.showMainMenu();
+
+            document.getElementById('buy-magnet').onclick = () => {
+                if (this.totalCredits >= 100 && !this.magnetUpgraded) {
+                    this.totalCredits -= 100;
+                    this.magnetUpgraded = true;
+                    SafeStorage.setItem('cyber_credits', this.totalCredits);
+                    SafeStorage.setItem('cyber_magnet_up', 'true');
+                    this.updateMarketUI();
+                }
+            };
+
+            this.uUI = () => {
+                let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' :
+                            (this.slowTimer > 0 ? ' <span style="color:#f0f">[SLOWED]</span>' :
+                            (this.magnetTimer > 0 ? ' <span style="color:#0ff">[MAGNET!]</span>' : ''));
+                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}`;
+            };
+        }
+
+        showMainMenu() {
+            this.inM = 1;
+            this.gO = 0;
+            this.mainMenu.style.display = 'flex';
+            this.marketMenu.style.display = 'none';
+            this.hud.style.display = 'none';
+            document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
+            document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
+        }
+
+        showMarket() {
+            this.mainMenu.style.display = 'none';
+            this.marketMenu.style.display = 'flex';
+            this.updateMarketUI();
+        }
+
+        updateMarketUI() {
+            document.getElementById('market-credits').innerText = `CREDITS: ${this.totalCredits}`;
+            let buyMagBtn = document.getElementById('buy-magnet');
+            if (this.magnetUpgraded) {
+                buyMagBtn.innerText = 'OWNED';
+                buyMagBtn.disabled = true;
+                buyMagBtn.style.opacity = '0.5';
+            }
+        }
+
+        init() {
+            this.cL = 1;
+            this.pX = 0;
+            this.pY = -0.4;
+            this.jV = 0;
+            this.isJ = 0;
+            this.obs = [];
+            this.coins = [];
+            this.items = [];
+            this.score = 0;
+            this.coinsCount = 0;
+            this.spd = 0.30;
+            this.gO = 0;
+            this.boostTimer = 0;
+            this.slowTimer = 0;
+            this.magnetTimer = 0;
+            this.audio.resetCombo();
+            
+            this.hud.style.display = 'block';
+            this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
+            this.mainMenu.style.display = 'none';
+            this.marketMenu.style.display = 'none';
+            
+            this.uUI();
+            this.sp();
+            this.spC();
+            this.spI();
+        }
+
+        restart() {
+            this.init();
+            requestAnimationFrame(t => this.loop(t));
+        }
+
+        sp() {
+            if (this.gO || this.inM) return;
+            this.obs.push({
+                x: this.lanes[Math.floor(Math.random() * 3)],
+                z: -45,
+                hScale: Math.random() > 0.5 ? 1.8 : 1.0
+            });
+            setTimeout(() => this.sp(), Math.random() * 400 + 350);
+        }
+
+        spC() {
+            if (this.gO || this.inM) return;
+            if (Math.random() > .3) {
+                this.coins.push({
+                    x: this.lanes[Math.floor(Math.random() * 3)],
+                    z: -45
+                });
+            }
+            setTimeout(() => this.spC(), 300);
+        }
+
+        spI() {
+            if (this.gO || this.inM) return;
+            if (Math.random() > .4) {
+                let types = ['b', 's', 'm'];
+                this.items.push({
+                    x: this.lanes[Math.floor(Math.random() * 3)],
+                    z: -45,
+                    t: types[Math.floor(Math.random() * 3)]
+                });
+            }
+            setTimeout(() => this.spI(), Math.random() * 2000 + 1500);
+        }
+
+        loop(timestamp) {
+            if (this.gO || this.inM) return;
+            requestAnimationFrame(t => this.loop(t));
+
+            let dt = this.lastTime ? (timestamp - this.lastTime) / 1000 : 0.016;
+            this.lastTime = timestamp;
+            if (dt > 0.1) dt = 0.1;
+            let dtFactor = dt * 60;
+
+            this.renderer.render(dt);
+
+            if (this.boostTimer > 0) this.boostTimer -= dtFactor;
+            if (this.slowTimer > 0) this.slowTimer -= dtFactor;
+            if (this.magnetTimer > 0) this.magnetTimer -= dtFactor;
+
+            let modSpd = this.spd * (this.boostTimer > 0 ? 1.6 : (this.slowTimer > 0 ? 0.5 : 1.0));
+            let dynamicSpd = (modSpd + Math.sin(this.score * 0.01) * 0.05) * dtFactor;
+            this.audio.setTempo(modSpd);
+
+            this.pX += (this.lanes[this.cL] - this.pX) * (0.2 * dtFactor);
+            let camTiltZ = -this.pX * 0.05;
+
+            if (this.isJ) {
+                this.pY += this.jV * dtFactor;
+                this.jV -= 0.012 * dtFactor;
+                if (this.pY <= -0.4) {
+                    this.pY = -0.4;
+                    this.isJ = 0;
+                }
+            }
+
+            const gl = this.renderer.gl;
+
+            // Render Player Avatar Block
+            gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
+            gl.uniform4fv(this.renderer.uc, this.boostTimer > 0 ? [0, 1, 0.4, 1] : [0, 1, 1, 1]);
+            gl.uniform1f(this.renderer.uGlow, 1.8);
+            gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+
+            // Render and process Coins
+            for (let i = this.coins.length - 1; i >= 0; i--) {
+                let o = this.coins[i];
+                o.z += dynamicSpd;
+
+                if (this.magnetTimer > 0 && o.z > -15) {
+                    o.x += (this.pX - o.x) * 0.15 * dtFactor;
+                }
+
+                if (Math.abs(o.x - this.pX) < 0.5 && o.z > -6.6 && o.z < -5.4) {
+                    this.coins.splice(i, 1);
+                    this.coinsCount++;
+                    this.score += 50;
+                    this.audio.playCoinSound();
+                    this.input.vibrate(50);
+                    this.uUI();
+                    continue;
+                }
+
+                if (o.z > 1) {
+                    this.coins.splice(i, 1);
+                    continue;
+                }
+
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.2, o.z));
+                gl.uniform4fv(this.renderer.uc, [1, 0.85, 0, 1]);
+                gl.uniform1f(this.renderer.uGlow, 1.5);
+                gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 120);
+            }
+
+            // Render and process Collectible Powerup Items
+            for (let i = this.items.length - 1; i >= 0; i--) {
+                let it = this.items[i];
+                it.z += dynamicSpd;
+
+                if (Math.abs(it.x - this.pX) < 0.6 && it.z > -6.6 && it.z < -5.4) {
+                    if (it.t === 'b') {
+                        this.boostTimer = 180;
+                        this.slowTimer = 0;
+                    } else if (it.t === 's') {
+                        this.slowTimer = 180;
+                        this.boostTimer = 0;
+                    } else if (it.t === 'm') {
+                        this.magnetTimer = this.magnetUpgraded ? 420 : 300;
+                    }
+                    this.input.vibrate(80);
+                    this.items.splice(i, 1);
+                    this.uUI();
+                    continue;
+                }
+
+                if (it.z > 1) {
+                    this.items.splice(i, 1);
+                    continue;
+                }
+
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(it.x, -0.2, it.z));
+                gl.uniform4fv(this.renderer.uc, it.t === 'b' ? [0, 1, 0.2, 1] : (it.t === 's' ? [0.9, 0, 0.9, 1] : [0, 0.8, 1, 1]));
+                gl.uniform1f(this.renderer.uGlow, 2.0);
+                gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 120);
+            }
+
+            // Render and process Obstacles / Hazards
+            for (let i = this.obs.length - 1; i >= 0; i--) {
+                let o = this.obs[i];
+                o.z += dynamicSpd;
+
+                if (Math.abs(o.x - this.pX) < 0.65 && o.z > -6.6 && o.z < -5.4 && this.pY < 0.2) {
+                    this.gO = 1;
+                    this.renderer.shakeTimer = 0.15;
+                    this.input.vibrate([100, 50, 100]);
+
+                    this.totalCredits += this.coinsCount;
+                    SafeStorage.setItem('cyber_credits', this.totalCredits);
+
+                    let newBest = false;
+                    if (Math.floor(this.score) > this.highScore) {
+                        this.highScore = Math.floor(this.score);
+                        SafeStorage.setItem('cyber_high_score', this.highScore);
+                        newBest = true;
+                    }
+
+                    this.hud.innerHTML = `GAME OVER<br>` + 
+                         (newBest ? `<span class="new-best-anim">NEW BEST!</span><br>` : '') + 
+                         `<span style="font-size:18px;color:#888;">SCORE: ${Math.floor(this.score)}</span><br>` + 
+                         `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px;">RETRY</button>` + 
+                         `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px;">MENU</button>`;
+                    this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#f14;font-size:44px;text-align:center;pointer-events:auto;';
+                    return;
+                }
+
+                if (o.z > 1) {
+                    this.obs.splice(i, 1);
+                    this.score += 10;
+                    this.spd += 0.002;
+                    this.uUI();
+                    continue;
+                }
+
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.4, o.z, 0, o.hScale));
+                gl.uniform4fv(this.renderer.uc, [1, 0, 0.25, 1]);
+                gl.uniform1f(this.renderer.uGlow, 1.5);
+                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+            }
+        }
+    }
+
+    // Initialize the game instance
+    window.game = new CyberRunGame();
+    </script>
 </body>
 </html>
 
