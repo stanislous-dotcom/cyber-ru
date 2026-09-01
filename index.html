@@ -554,7 +554,7 @@
             
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
-            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
+            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up'] === 'true';
             this.lastTime = 0;
             
             this.initUI();
@@ -671,14 +671,12 @@
 
         sp() {
             if (this.gO || this.inM) return;
-            // Normal obstacles spawn when not in boss fight
-            if (!this.inBossFight) {
-                this.obs.push({
-                    x: this.lanes[Math.floor(Math.random() * 3)],
-                    z: -45,
-                    hScale: Math.random() > 0.5 ? 1.8 : 1.0
-                });
-            }
+            // Obstacles always spawn continuously so the track is never empty
+            this.obs.push({
+                x: this.lanes[Math.floor(Math.random() * 3)],
+                z: -45,
+                hScale: Math.random() > 0.5 ? 1.8 : 1.0
+            });
             setTimeout(() => this.sp(), Math.random() * 400 + 350);
         }
 
@@ -733,8 +731,8 @@
 
             if (this.inBossFight) {
                 this.bossAttackTimer += dtFactor;
-                // Boss fires heavy lethal laser barriers every 45 frames during boss fight!
-                if (this.bossAttackTimer > 45) {
+                // Boss fires a well-paced, dodgeable laser shot every 120 frames (~2 seconds)
+                if (this.bossAttackTimer > 120) {
                     this.bossAttackTimer = 0;
                     this.obs.push({
                         x: this.lanes[Math.floor(Math.random() * 3)],
@@ -753,7 +751,6 @@
                     this.bossHud.style.display = 'none';
                     this.score += 500;
                     this.coinsCount += 50;
-                    this.obs = [];
                 }
             }
 
@@ -908,7 +905,6 @@
     </script>
 </body>
 </html>
-
 
 
 
