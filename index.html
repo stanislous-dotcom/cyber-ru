@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Run 3D - Boss Edition</title>
+    <title>Cyber Run 3D - Blaster Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -169,8 +169,9 @@
         <div class="boss-bar-container"><div id="boss-health-fill"></div></div>
     </div>
 
-    <!-- GLOBAL AUDIO TOGGLE BUTTON -->
+    <!-- GLOBAL AUDIO & FIRE BUTTONS -->
     <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; animation: none;">🎵 ON</button>
+    <button id="btn-fire" class="neon-btn purple" style="position: fixed; bottom: 25px; right: 25px; z-index: 100; padding: 16px 24px; font-size: 18px; display: none; border-radius: 50px;">🔫 FIRE</button>
 
     <!-- MAIN MENU OVERLAY -->
     <div id="main-menu" class="overlay-screen">
@@ -178,7 +179,7 @@
         <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
         <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
         <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
-            Swipe Left/Right to change lanes • Swipe Up to Jump<br>Use Arrow Keys / Spacebar on desktop
+            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot<br>Use Arrow Keys / Space / F on desktop
         </div>
         <div>
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
@@ -281,6 +282,29 @@
             }
         }
 
+        playLaserSound() {
+            if (!this.ctx || this.isMuted) return;
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            try {
+                let o = this.ctx.createOscillator();
+                let g = this.ctx.createGain();
+                let t = this.ctx.currentTime;
+                
+                o.type = 'square';
+                o.frequency.setValueAtTime(880, t);
+                o.frequency.exponentialRampToValueAtTime(110, t + 0.12);
+                
+                g.gain.setValueAtTime(0.08, t);
+                g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                
+                o.connect(g);
+                g.connect(this.ctx.destination);
+                
+                o.start(t);
+                o.stop(t + 0.12);
+            } catch(e) {}
+        }
+
         playCoinSound() {
             if (!this.ctx || this.isMuted) return;
             if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -324,13 +348,13 @@
 
         bindEvents() {
             window.addEventListener('touchstart', e => {
-                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
+                if (e.target.id === 'btn-music' || e.target.id === 'btn-fire' || e.target.tagName === 'BUTTON') return;
                 this.touchX = e.touches[0].clientX;
                 this.touchY = e.touches[0].clientY;
             }, { passive: true });
 
             window.addEventListener('touchend', e => {
-                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
+                if (e.target.id === 'btn-music' || e.target.id === 'btn-fire' || e.target.tagName === 'BUTTON') return;
                 if (this.game.gO) { this.game.restart(); return; }
                 if (this.game.inM) return;
                 
@@ -350,6 +374,12 @@
                     }
                 }
             }, { passive: true });
+
+            document.getElementById('btn-fire').onclick = () => {
+                if (!this.game.gO && !this.game.inM) {
+                    this.game.shootLaser();
+                }
+            };
 
             window.addEventListener('keydown', e => {
                 if (e.key === 'Escape') {
@@ -371,6 +401,9 @@
                 if ((e.key === ' ' || e.key === 'ArrowUp') && !this.game.isJ) {
                     this.game.isJ = 1;
                     this.game.jV = 0.17;
+                }
+                if (e.key === 'f' || e.key === 'F' || e.key === 'Enter') {
+                    this.game.shootLaser();
                 }
             });
         }
@@ -535,6 +568,7 @@
             this.obs = [];
             this.coins = [];
             this.items = [];
+            this.bullets = [];
             
             this.score = 0;
             this.coinsCount = 0;
@@ -542,7 +576,6 @@
             this.gO = 0;
             this.inM = 1;
             
-            // Boss variables
             this.inBossFight = false;
             this.bossHP = 100;
             this.maxBossHP = 100;
@@ -554,7 +587,7 @@
             
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
-            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up'] === 'true';
+            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
             this.lastTime = 0;
             
             this.initUI();
@@ -612,6 +645,7 @@
             this.marketMenu.style.display = 'none';
             this.hud.style.display = 'none';
             this.bossHud.style.display = 'none';
+            document.getElementById('btn-fire').style.display = 'none';
             document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
             document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
         }
@@ -641,6 +675,7 @@
             this.obs = [];
             this.coins = [];
             this.items = [];
+            this.bullets = [];
             this.score = 0;
             this.coinsCount = 0;
             this.spd = 0.30;
@@ -655,6 +690,7 @@
             
             this.hud.style.display = 'block';
             this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
+            document.getElementById('btn-fire').style.display = 'block';
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
             
@@ -669,9 +705,18 @@
             requestAnimationFrame(t => this.loop(t));
         }
 
+        shootLaser() {
+            if (this.gO || this.inM) return;
+            this.bullets.push({
+                x: this.pX,
+                z: -6
+            });
+            this.audio.playLaserSound();
+            this.input.vibrate(30);
+        }
+
         sp() {
             if (this.gO || this.inM) return;
-            // Obstacles always spawn continuously so the track is never empty
             this.obs.push({
                 x: this.lanes[Math.floor(Math.random() * 3)],
                 z: -45,
@@ -724,14 +769,12 @@
             this.score += 0.5 * dtFactor;
             this.uUI();
 
-            // Trigger boss fight at score 1000
             if (!this.inBossFight && this.score >= 1000) {
                 this.triggerBossFight();
             }
 
             if (this.inBossFight) {
                 this.bossAttackTimer += dtFactor;
-                // Boss fires a well-paced, dodgeable laser shot every 120 frames (~2 seconds)
                 if (this.bossAttackTimer > 120) {
                     this.bossAttackTimer = 0;
                     this.obs.push({
@@ -742,11 +785,9 @@
                     });
                 }
                 
-                // Update health bar UI display
                 document.getElementById('boss-health-fill').style.width = Math.max(0, (this.bossHP / this.maxBossHP) * 100) + '%';
 
                 if (this.bossHP <= 0) {
-                    // Boss defeated!
                     this.inBossFight = false;
                     this.bossHud.style.display = 'none';
                     this.score += 500;
@@ -776,7 +817,7 @@
 
             const gl = this.renderer.gl;
 
-            // Render Boss Avatar when in Boss fight
+            // Render Boss Avatar
             if (this.inBossFight) {
                 gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(0, 1.2, -35, 0, 2.5));
                 gl.uniform4fv(this.renderer.uc, [1, 0, 0, 1]); 
@@ -790,7 +831,43 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Render and process Coins (Collecting coins attacks the boss!)
+            // Render and process Player Bullets (Shooting mechanic)
+            for (let i = this.bullets.length - 1; i >= 0; i--) {
+                let b = this.bullets[i];
+                b.z -= 1.2 * dtFactor; // Bullets fly forward away from player
+
+                // Check bullet hit on Boss
+                if (this.inBossFight && b.z <= -34 && b.z >= -36 && Math.abs(b.x) < 0.8) {
+                    this.bossHP -= 10;
+                    this.bullets.splice(i, 1);
+                    this.input.vibrate(40);
+                    continue;
+                }
+
+                // Check bullet hit on obstacles
+                let hitObs = false;
+                for (let j = this.obs.length - 1; j >= 0; j--) {
+                    let o = this.obs[j];
+                    if (Math.abs(b.x - o.x) < 0.6 && Math.abs(b.z - o.z) < 1.0) {
+                        this.obs.splice(j, 1); // Destroy obstacle!
+                        hitObs = true;
+                        this.score += 10;
+                        break;
+                    }
+                }
+
+                if (hitObs || b.z < -45) {
+                    this.bullets.splice(i, 1);
+                    continue;
+                }
+
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(b.x, -0.2, b.z, 0, 0.4));
+                gl.uniform4fv(this.renderer.uc, [1, 1, 0, 1]); // Yellow bright laser shots
+                gl.uniform1f(this.renderer.uGlow, 3.0);
+                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+            }
+
+            // Render and process Coins
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
@@ -803,9 +880,6 @@
                     this.coins.splice(i, 1);
                     this.coinsCount++;
                     this.score += 25;
-                    if (this.inBossFight) {
-                        this.bossHP -= 8; // Deal damage to the boss when you collect coins!
-                    }
                     this.audio.playCoinSound();
                     this.input.vibrate(50);
                     this.uUI();
@@ -823,7 +897,7 @@
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
             }
 
-            // Render and process Collectible Powerup Items
+            // Render and process Powerup Items
             for (let i = this.items.length - 1; i >= 0; i--) {
                 let it = this.items[i];
                 it.z += dynamicSpd;
@@ -865,6 +939,7 @@
                     this.renderer.shakeTimer = 0.15;
                     this.input.vibrate([100, 50, 100]);
                     this.bossHud.style.display = 'none';
+                    document.getElementById('btn-fire').style.display = 'none';
 
                     this.totalCredits += this.coinsCount;
                     SafeStorage.setItem('cyber_credits', this.totalCredits);
