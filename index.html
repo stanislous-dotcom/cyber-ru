@@ -671,6 +671,7 @@
 
         sp() {
             if (this.gO || this.inM) return;
+            // Normal obstacles spawn when not in boss fight
             if (!this.inBossFight) {
                 this.obs.push({
                     x: this.lanes[Math.floor(Math.random() * 3)],
@@ -707,8 +708,8 @@
 
         triggerBossFight() {
             this.inBossFight = true;
+            this.bossHP = 100;
             this.bossHud.style.display = 'block';
-            this.obs = []; // Clear current obstacles for boss projectiles
         }
 
         loop(timestamp) {
@@ -722,7 +723,6 @@
 
             this.renderer.render(dt);
 
-            // Continuously grow score as you survive
             this.score += 0.5 * dtFactor;
             this.uUI();
 
@@ -733,8 +733,8 @@
 
             if (this.inBossFight) {
                 this.bossAttackTimer += dtFactor;
-                // Boss shoots tracking lasers every 80 frames
-                if (this.bossAttackTimer > 80) {
+                // Boss fires heavy lethal laser barriers every 45 frames during boss fight!
+                if (this.bossAttackTimer > 45) {
                     this.bossAttackTimer = 0;
                     this.obs.push({
                         x: this.lanes[Math.floor(Math.random() * 3)],
@@ -743,8 +743,8 @@
                         isBossLaser: true
                     });
                 }
-                // Reduce boss HP over time
-                this.bossHP -= 0.12 * dtFactor;
+                
+                // Update health bar UI display
                 document.getElementById('boss-health-fill').style.width = Math.max(0, (this.bossHP / this.maxBossHP) * 100) + '%';
 
                 if (this.bossHP <= 0) {
@@ -782,7 +782,7 @@
             // Render Boss Avatar when in Boss fight
             if (this.inBossFight) {
                 gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(0, 1.2, -35, 0, 2.5));
-                gl.uniform4fv(this.renderer.uc, [1, 0, 0, 1]); // Red threatening boss core
+                gl.uniform4fv(this.renderer.uc, [1, 0, 0, 1]); 
                 gl.uniform1f(this.renderer.uGlow, 2.5);
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
             }
@@ -793,7 +793,7 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Render and process Coins
+            // Render and process Coins (Collecting coins attacks the boss!)
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
@@ -806,7 +806,9 @@
                     this.coins.splice(i, 1);
                     this.coinsCount++;
                     this.score += 25;
-                    if (this.inBossFight) this.bossHP -= 4; // Deal extra damage to boss when collecting coins!
+                    if (this.inBossFight) {
+                        this.bossHP -= 8; // Deal damage to the boss when you collect coins!
+                    }
                     this.audio.playCoinSound();
                     this.input.vibrate(50);
                     this.uUI();
@@ -856,7 +858,7 @@
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
             }
 
-            // Render and process Obstacles / Hazards
+            // Render and process Obstacles / Boss Lasers
             for (let i = this.obs.length - 1; i >= 0; i--) {
                 let o = this.obs[i];
                 o.z += dynamicSpd;
@@ -906,6 +908,7 @@
     </script>
 </body>
 </html>
+
 
 
 
