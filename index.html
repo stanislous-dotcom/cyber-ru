@@ -211,7 +211,7 @@
         <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
         <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
         <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
-            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot Obstacles<br>Use Arrow Keys / Space / F on desktop
+            Swipe Left/Right • Swipe Up to Jump • Tap FIRE (during Boss) to Shoot<br>Use Arrow Keys / Space / F on desktop
         </div>
         <div style="display: flex; flex-wrap: wrap; justify-content: center;">
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
@@ -438,7 +438,7 @@
             }, { passive: true });
 
             document.getElementById('btn-fire').addEventListener('click', () => {
-                if (!this.game.gO && !this.game.inM) {
+                if (!this.game.gO && !this.game.inM && this.game.inBossFight) {
                     this.game.shootLaser();
                 }
             });
@@ -464,7 +464,7 @@
                     this.game.isJ = 1;
                     this.game.jV = 0.17;
                 }
-                if (e.key === 'f' || e.key === 'F' || e.key === 'Enter') {
+                if ((e.key === 'f' || e.key === 'F' || e.key === 'Enter') && this.game.inBossFight) {
                     this.game.shootLaser();
                 }
             });
@@ -569,7 +569,7 @@
             let cZ = Math.cos(tiltZ), sZ = Math.sin(tiltZ);
             
             return new Float32Array([
-                cY * cZ,        sZ,             -syM,           0,
+                cY * cZ,        sZ,         -syM,           0,
                 syM * .47 - sZ, .88 * sY * cZ,  cY * .47,       0,
                 syM * .88,      -.47 * sY,      cY * .88,       0,
                 x,              y * .88 - z * .47 - 2.3, y * .47 + z * .88 - 5.8, 1
@@ -642,6 +642,7 @@
             this.inBossFight = false;
             this.bossTimerFrames = 0;
             this.bossMaxFrames = 120 * 60;
+            this.bossHealth = 100;
 
             this.boostTimer = 0;
             this.slowTimer = 0;
@@ -684,7 +685,6 @@
             document.getElementById('btn-settings').addEventListener('click', () => this.showSettings());
             document.getElementById('btn-settings-back').addEventListener('click', () => this.showMainMenu());
 
-            // Keypad setup for password "6700"
             document.querySelectorAll('.keypad-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     let val = btn.getAttribute('data-val');
@@ -754,7 +754,7 @@
             this.settingsMenu.style.display = 'none';
             this.hud.style.display = 'none';
             this.bossHud.style.display = 'none';
-            document.getElementById('btn-fire').style.display = 'block';
+            document.getElementById('btn-fire').style.display = 'none';
             document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
             document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
         }
@@ -800,6 +800,7 @@
             this.gO = 0;
             this.inBossFight = false;
             this.bossTimerFrames = 0;
+            this.bossHealth = 100;
             this.boostTimer = 0;
             this.slowTimer = 0;
             this.magnetTimer = 0;
@@ -807,7 +808,7 @@
             
             this.hud.style.display = 'block';
             this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
-            document.getElementById('btn-fire').style.display = 'block';
+            document.getElementById('btn-fire').style.display = 'none';
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
             this.settingsMenu.style.display = 'none';
@@ -824,7 +825,7 @@
         }
 
         shootLaser() {
-            if (this.gO || this.inM) return;
+            if (this.gO || this.inM || !this.inBossFight) return;
             
             this.bullets.push({
                 x: this.lanes[this.cL],
@@ -836,261 +837,287 @@
 
         sp() {
             if (this.gO || this.inM) return;
-            
-            if (this.inBossFight) {
-                this.obs.push({
-                    x: this.lanes[Math.floor(Math.random() * 3)],
-                    z: -45,
-                    hScale: 1.5,
-                    isBossLaser: true
-                });
-                setTimeout(() => this.sp(), 700);
-            } else {
-                this.obs.push({
-                    x: this.lanes[Math.floor(Math.random() * 3)],
-                    z: -45,
-                    hScale: Math.random() > 0.5 ? 1.8 : 1.0,
-                    isBossLaser: false
-                });
-                setTimeout(() => this.sp(), Math.random() * 400 + 350);
-            }
+            let lane = Math.floor(Math.random() * 3);
+            let type = Math.random() > 0.5 ? 1 : 0;
+            this.obs.push({ l: lane, z: -35, type: type, hp: type === 1 ? 2 : 1 });
+            setTimeout(() => this.sp(), Math.max(900, 2000 - (this.score * 3)));
         }
 
         spC() {
             if (this.gO || this.inM) return;
-            if (!this.inBossFight && Math.random() > .3) {
-                this.coins.push({
-                    x: this.lanes[Math.floor(Math.random() * 3)],
-                    z: -45
-                });
-            }
-            setTimeout(() => this.spC(), 300);
+            let lane = Math.floor(Math.random() * 3);
+            this.coins.push({ l: lane, z: -35 });
+            setTimeout(() => this.spC(), 1200);
         }
 
         spI() {
             if (this.gO || this.inM) return;
-            if (!this.inBossFight && Math.random() > .4) {
-                let types = ['b', 's', 'm'];
-                this.items.push({
-                    x: this.lanes[Math.floor(Math.random() * 3)],
-                    z: -45,
-                    t: types[Math.floor(Math.random() * 3)]
-                });
-            }
-            setTimeout(() => this.spI(), Math.random() * 2000 + 1500);
+            let lane = Math.floor(Math.random() * 3);
+            let r = Math.random();
+            let type = r < 0.4 ? 'boost' : (r < 0.7 ? 'slow' : 'magnet');
+            this.items.push({ l: lane, z: -35, type: type });
+            setTimeout(() => this.spI(), 11000);
         }
 
-        triggerBossFight() {
-            this.inBossFight = true;
-            this.bossTimerFrames = 0;
-            this.bossHud.style.display = 'block';
-        }
+        loop(time) {
+            if (this.inM) return;
+            let dt = (time - this.lastTime) / 16.66;
+            if (isNaN(dt) || dt <= 0) dt = 1;
+            this.lastTime = time;
 
-        loop(timestamp) {
-            if (this.gO || this.inM) return;
-            requestAnimationFrame(t => this.loop(t));
+            let effectiveSpd = this.spd;
+            if (this.boostTimer > 0) { effectiveSpd *= 1.5; this.boostTimer -= dt; }
+            if (this.slowTimer > 0) { effectiveSpd *= 0.7; this.slowTimer -= dt; }
+            if (this.magnetTimer > 0) { this.magnetTimer -= dt; }
 
-            let dt = this.lastTime ? (timestamp - this.lastTime) / 1000 : 0.016;
-            this.lastTime = timestamp;
-            if (dt > 0.1) dt = 0.1;
-            let dtFactor = dt * 60;
-
-            this.renderer.render(dt);
-
-            this.score += 0.5 * dtFactor;
-            this.uUI();
-
-            if (!this.inBossFight && this.score >= 2000) {
-                this.triggerBossFight();
-            }
-
-            if (this.inBossFight) {
-                this.bossTimerFrames += dtFactor;
-                
-                let remainingRatio = Math.max(0, 1 - (this.bossTimerFrames / this.bossMaxFrames));
-                document.getElementById('boss-health-fill').style.width = (remainingRatio * 100) + '%';
-
-                if (this.bossTimerFrames >= this.bossMaxFrames) {
-                    this.inBossFight = false;
-                    this.bossHud.style.display = 'none';
-                    this.score += 1000;
-                    this.coinsCount += 100;
-                }
-            }
-
-            if (this.boostTimer > 0) this.boostTimer -= dtFactor;
-            if (this.slowTimer > 0) this.slowTimer -= dtFactor;
-            if (this.magnetTimer > 0) this.magnetTimer -= dtFactor;
-
-            let modSpd = this.spd * (this.boostTimer > 0 ? 1.6 : (this.slowTimer > 0 ? 0.5 : 1.0));
-            let dynamicSpd = (modSpd + Math.sin(this.score * 0.01) * 0.05) * dtFactor;
-            this.audio.setTempo(modSpd);
-
-            this.pX += (this.lanes[this.cL] - this.pX) * (0.2 * dtFactor);
-            let camTiltZ = -this.pX * 0.05;
+            this.audio.setTempo(effectiveSpd);
 
             if (this.isJ) {
-                this.pY += this.jV * dtFactor;
-                this.jV -= 0.012 * dtFactor;
+                this.pY += this.jV * dt * 16;
+                this.jV -= 0.015 * dt * 16;
                 if (this.pY <= -0.4) {
                     this.pY = -0.4;
                     this.isJ = 0;
+                    this.jV = 0;
                 }
             }
 
-            const gl = this.renderer.gl;
+            let targetX = this.lanes[this.cL];
+            this.pX += (targetX - this.pX) * 0.2 * dt * 16;
 
-            if (this.inBossFight) {
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(0, 1.2, -35, 0, 2.5));
-                gl.uniform4fv(this.renderer.uc, [1, 0, 0, 1]); 
-                gl.uniform1f(this.renderer.uGlow, 2.5);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+            this.score += effectiveSpd * dt;
+            this.spd = Math.min(0.55, 0.30 + (this.score / 2500));
+
+            // Boss Fight progression
+            this.bossTimerFrames += dt;
+            if (this.bossTimerFrames >= this.bossMaxFrames && !this.inBossFight) {
+                this.inBossFight = true;
+                this.bossHud.style.display = 'block';
+                document.getElementById('btn-fire').style.display = 'block';
             }
 
-            gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
-            gl.uniform4fv(this.renderer.uc, this.boostTimer > 0 ? [0, 1, 0.4, 1] : [0, 1, 1, 1]);
-            gl.uniform1f(this.renderer.uGlow, 1.8);
-            gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
-
+            // Update bullets
             for (let i = this.bullets.length - 1; i >= 0; i--) {
-                let b = this.bullets[i];
-                b.z -= 2.5 * dtFactor;
+                this.bullets[i].z -= 0.9 * dt * 16;
+                
+                // Check boss hit if in boss fight
+                if (this.inBossFight && this.bullets[i].z < -25) {
+                    this.bossHealth -= 5;
+                    this.bullets.splice(i, 1);
+                    this.input.vibrate(60);
+                    
+                    let healthFill = document.getElementById('boss-health-fill');
+                    if (healthFill) healthFill.style.width = Math.max(0, this.bossHealth) + '%';
+                    
+                    if (this.bossHealth <= 0) {
+                        this.inBossFight = false;
+                        this.bossHud.style.display = 'none';
+                        document.getElementById('btn-fire').style.display = 'none';
+                        this.score += 1000;
+                        this.bossHealth = 100;
+                        this.bossTimerFrames = 0; // Reset for next boss cycle if desired
+                        if (healthFill) healthFill.style.width = '100%';
+                    }
+                    continue;
+                }
 
-                let hitObstacle = false;
-                for (let j = this.obs.length - 1; j >= 0; j--) {
-                    let o = this.obs[j];
-                    if (Math.abs(b.x - o.x) < 1.0 && Math.abs(b.z - o.z) < 3.5) {
-                        this.obs.splice(j, 1);
-                        hitObstacle = true;
-                        this.score += 25;
-                        this.coinsCount += 3;
-                        this.uUI();
-                        break;
+                if (this.bullets[i] && this.bullets[i].z < -40) {
+                    this.bullets.splice(i, 1);
+                }
+            }
+
+            // Update obstacles
+            for (let i = this.obs.length - 1; i >= 0; i--) {
+                this.obs[i].z += effectiveSpd * dt * 16;
+
+                // Bullet collision check with regular obstacles
+                for (let b = this.bullets.length - 1; b >= 0; b--) {
+                    if (Math.abs(this.bullets[b].z - this.obs[i].z) < 1.0 && this.lanes[this.obs[i].l] === this.bullets[b].x) {
+                        this.obs[i].hp--;
+                        this.bullets.splice(b, 1);
+                        this.input.vibrate(50);
+                        if (this.obs[i].hp <= 0) {
+                            this.obs.splice(i, 1);
+                            this.score += 50;
+                            break;
+                        }
                     }
                 }
 
-                if (hitObstacle || b.z < -45) {
-                    this.bullets.splice(i, 1);
-                    continue;
+                if (!this.obs[i]) continue;
+
+                // Player collision check
+                if (this.obs[i].z > -5.2 && this.obs[i].z < -4.6 && this.lanes[this.obs[i].l] === Math.round(this.pX * 10) / 10) {
+                    if (this.pY < 0.2) {
+                        this.gameOver();
+                        return;
+                    }
                 }
 
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(b.x, -0.2, b.z, 0, 0.4));
-                gl.uniform4fv(this.renderer.uc, [1, 1, 0, 1]);
-                gl.uniform1f(this.renderer.uGlow, 3.0);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+                if (this.obs[i].z > 5) this.obs.splice(i, 1);
             }
 
+            // Update coins
             for (let i = this.coins.length - 1; i >= 0; i--) {
-                let o = this.coins[i];
-                o.z += dynamicSpd;
+                let c = this.coins[i];
+                c.z += effectiveSpd * dt * 16;
 
-                if (this.magnetTimer > 0 && o.z > -15) {
-                    o.x += (this.pX - o.x) * 0.15 * dtFactor;
+                let cLaneX = this.lanes[c.l];
+                let dist = Math.hypot(this.pX - cLaneX, -4.8 - c.z);
+
+                let magnetRadius = this.magnetUpgraded ? 3.5 : 2.2;
+                if (this.magnetTimer > 0 && dist < magnetRadius && c.z < -1.0) {
+                    c.l = this.cL;
                 }
 
-                if (Math.abs(o.x - this.pX) < 0.5 && o.z > -6.6 && o.z < -5.4) {
+                if (c.z > -5.5 && c.z < -4.2 && this.lanes[c.l] === Math.round(this.pX * 10) / 10) {
+                    if (Math.abs(this.pY - (-0.4)) < 0.5) {
+                        this.coinsCount++;
+                        this.totalCredits++;
+                        SafeStorage.setItem('cyber_credits', this.totalCredits);
+                        this.audio.playCoinSound();
+                        this.input.vibrate(20);
+                        this.coins.splice(i, 1);
+                        continue;
+                    }
+                }
+                if (c.z > 5) {
                     this.coins.splice(i, 1);
-                    this.coinsCount++;
-                    this.score += 25;
-                    this.audio.playCoinSound();
-                    this.input.vibrate(50);
-                    this.uUI();
-                    continue;
+                    this.audio.resetCombo();
                 }
-
-                if (o.z > 1) {
-                    this.coins.splice(i, 1);
-                    continue;
-                }
-
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, 0.0, o.z));
-                gl.uniform4fv(this.renderer.uc, [1, 0.85, 0, 1]);
-                gl.uniform1f(this.renderer.uGlow, 1.5);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
             }
 
+            // Update items
             for (let i = this.items.length - 1; i >= 0; i--) {
                 let it = this.items[i];
-                it.z += dynamicSpd;
+                it.z += effectiveSpd * dt * 16;
 
-                if (Math.abs(it.x - this.pX) < 0.6 && it.z > -6.6 && it.z < -5.4) {
-                    if (it.t === 'b') {
-                        this.boostTimer = 180;
-                        this.slowTimer = 0;
-                    } else if (it.t === 's') {
-                        this.slowTimer = 180;
-                        this.boostTimer = 0;
-                    } else if (it.t === 'm') {
-                        this.magnetTimer = this.magnetUpgraded ? 420 : 300;
+                if (it.z > -5.5 && it.z < -4.2 && this.lanes[it.l] === Math.round(this.pX * 10) / 10) {
+                    if (Math.abs(this.pY - (-0.4)) < 0.5) {
+                        if (it.type === 'boost') this.boostTimer = 300;
+                        if (it.type === 'slow') this.slowTimer = 300;
+                        if (it.type === 'magnet') this.magnetTimer = 450;
+                        this.input.vibrate([40, 40, 40]);
+                        this.items.splice(i, 1);
+                        continue;
                     }
-                    this.input.vibrate(80);
-                    this.items.splice(i, 1);
-                    this.uUI();
-                    continue;
                 }
-
-                if (it.z > 1) {
-                    this.items.splice(i, 1);
-                    continue;
-                }
-
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(it.x, 0.0, it.z));
-                gl.uniform4fv(this.renderer.uc, it.t === 'b' ? [0, 1, 0.2, 1] : (it.t === 's' ? [0.9, 0, 0.9, 1] : [0, 0.8, 1, 1]));
-                gl.uniform1f(this.renderer.uGlow, 2.0);
-                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
+                if (it.z > 5) this.items.splice(i, 1);
             }
 
-            for (let i = this.obs.length - 1; i >= 0; i--) {
-                let o = this.obs[i];
-                o.z += dynamicSpd;
+            this.uUI();
+            this.drawScene(dt);
+            requestAnimationFrame(t => this.loop(t));
+        }
 
-                let collisionYThreshold = o.isBossLaser ? 0.6 : 0.2;
-                if (Math.abs(o.x - this.pX) < 0.65 && o.z > -6.6 && o.z < -5.4 && this.pY < collisionYThreshold) {
-                    this.gO = 1;
-                    this.renderer.shakeTimer = 0.15;
-                    this.input.vibrate([100, 50, 100]);
-                    this.bossHud.style.display = 'none';
+        drawScene(dt) {
+            let r = this.renderer;
+            r.render(dt);
 
-                    this.totalCredits += this.coinsCount;
-                    SafeStorage.setItem('cyber_credits', this.totalCredits);
+            let gl = r.gl;
+            gl.useProgram(r.P);
 
-                    let newBest = false;
-                    if (Math.floor(this.score) > this.highScore) {
-                        this.highScore = Math.floor(this.score);
-                        SafeStorage.setItem('cyber_high_score', this.highScore);
-                        newBest = true;
-                    }
+            // Draw Road Grid / Ground
+            gl.uniform4f(r.uc, 0.0, 0.8, 1.0, 0.6);
+            gl.uniform1f(r.uGlow, 1.2);
+            gl.uniformMatrix4fv(r.um, false, r.mat(0, -1.8, 0, 0, 15, 0));
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, r.iB);
+            gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-                    this.hud.innerHTML = `GAME OVER<br>` + 
-                           (newBest ? `<span class="new-best-anim">NEW BEST!</span><br>` : '') + 
-                           `<span style="font-size:18px;color:#888;">SCORE: ${Math.floor(this.score)}</span><br>` + 
-                           `<button id="btn-retry" class="neon-btn" style="margin-top:15px; pointer-events:auto;">RETRY</button>` + 
-                           `<button id="btn-menu" class="neon-btn purple" style="margin-top:15px; pointer-events:auto;">MENU</button>`;
-                    this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#f14;font-size:44px;text-align:center;pointer-events:auto;';
-                    
-                    document.getElementById('btn-retry').onclick = () => window.game.restart();
-                    document.getElementById('btn-menu').onclick = () => window.game.showMainMenu();
-                    return;
-                }
+            // Draw Player Ship
+            gl.uniform4f(r.uc, 0.0, 1.0, 1.0, 1.0);
+            gl.uniform1f(r.uGlow, 2.5);
+            gl.uniformMatrix4fv(r.um, false, r.mat(this.pX, this.pY, -4.8, 0, 1.0, (this.lanes[this.cL] - this.pX) * 0.4));
+            gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-                if (o.z > 1) {
-                    this.obs.splice(i, 1);
-                    this.score += 15;
-                    this.spd += 0.002;
-                    this.uUI();
-                    continue;
-                }
+            // Draw Obstacles
+            for (let ob of this.obs) {
+                gl.uniform4f(r.uc, ob.type === 1 ? 1.0 : 1.0, ob.type === 1 ? 0.0 : 0.5, 0.0, 1.0);
+                gl.uniform1f(r.uGlow, 2.0);
+                gl.uniformMatrix4fv(r.um, false, r.mat(this.lanes[ob.l], -0.4, ob.z));
+                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+            }
 
-                let renderY = o.isBossLaser ? 0.3 : -0.4;
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, renderY, o.z, 0, o.hScale));
-                gl.uniform4fv(this.renderer.uc, o.isBossLaser ? [1, 0, 0.8, 1] : [1, 0, 0.25, 1]);
-                gl.uniform1f(this.renderer.uGlow, o.isBossLaser ? 2.5 : 1.5);
+            // Draw Coins
+            for (let c of this.coins) {
+                gl.uniform4f(r.uc, 1.0, 0.85, 0.0, 1.0);
+                gl.uniform1f(r.uGlow, 3.0);
+                gl.uniformMatrix4fv(r.um, false, r.mat(this.lanes[c.l], -0.3, c.z, Date.now() * 0.005, 0.4));
+                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+            }
+
+            // Draw Items
+            for (let it of this.items) {
+                let col = it.type === 'boost' ? [0.0, 1.0, 0.0, 1.0] : (it.type === 'slow' ? [1.0, 0.0, 1.0, 1.0] : [0.0, 1.0, 1.0, 1.0]);
+                gl.uniform4f(r.uc, col[0], col[1], col[2], col[3]);
+                gl.uniform1f(r.uGlow, 2.8);
+                gl.uniformMatrix4fv(r.um, false, r.mat(this.lanes[it.l], -0.2, it.z, 0, 0.8));
+                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+            }
+
+            // Draw Bullets
+            for (let b of this.bullets) {
+                gl.uniform4f(r.uc, 1.0, 0.0, 1.0, 1.0);
+                gl.uniform1f(r.uGlow, 3.5);
+                gl.uniformMatrix4fv(r.um, false, r.mat(b.x, -0.4, b.z, 0, 0.3));
+                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+            }
+
+            // Draw Boss entity on screen if active
+            if (this.inBossFight) {
+                gl.uniform4f(r.uc, 1.0, 0.0, 0.0, 1.0);
+                gl.uniform1f(r.uGlow, 4.0);
+                gl.uniformMatrix4fv(r.um, false, r.mat(0, 0.8, -25, Date.now() * 0.002, 3.5));
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
             }
         }
+
+        gameOver() {
+            this.gO = 1;
+            this.bossHud.style.display = 'none';
+            document.getElementById('btn-fire').style.display = 'none';
+            this.input.vibrate([100, 50, 100]);
+            this.renderer.shakeTimer = 25;
+
+            let isNewBest = false;
+            let finalScoreInt = Math.floor(this.score);
+            if (finalScoreInt > this.highScore) {
+                this.highScore = finalScoreInt;
+                SafeStorage.setItem('cyber_high_score', this.highScore);
+                isNewBest = true;
+            }
+
+            let goScreen = document.createElement('div');
+            goScreen.className = 'overlay-screen';
+            goScreen.style.zIndex = '50';
+            goScreen.innerHTML = `
+                <h1 style="font-size: 48px; color: #f00; text-shadow: 0 0 15px #f00; margin-bottom: 5px;">SYSTEM CRASH</h1>
+                ${isNewBest ? '<div class="new-best-anim">⭐ NEW HIGH SCORE! ⭐</div>' : ''}
+                <div style="font-size: 22px; color: #0ff; margin: 10px 0;">FINAL SCORE: ${finalScoreInt}</div>
+                <div style="font-size: 18px; color: #ffd700; margin-bottom: 25px;">CREDITS EARNED: ${this.coinsCount}</div>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+                    <button class="neon-btn" id="go-retry">RETRY</i>
+                    <button class="neon-btn purple" id="go-menu">MAIN MENU</button>
+                </div>
+            `;
+            document.body.appendChild(goScreen);
+
+            document.getElementById('go-retry').addEventListener('click', () => {
+                goScreen.remove();
+                this.restart();
+            });
+            document.getElementById('go-menu').addEventListener('click', () => {
+                goScreen.remove();
+                this.showMainMenu();
+            });
+        }
     }
 
-    window.game = new CyberRunGame();
+    window.addEventListener('load', () => {
+        window.gameInstance = new CyberRunGame();
+    });
     </script>
 </body>
 </html>
+
+
