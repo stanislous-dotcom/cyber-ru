@@ -179,7 +179,7 @@
         <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
         <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
         <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
-            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot Obstacles & Boss<br>Use Arrow Keys / Space / F on desktop
+            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot Obstacles<br>Use Arrow Keys / Space / F on desktop
         </div>
         <div>
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
@@ -705,8 +705,9 @@
         shootLaser() {
             if (this.gO || this.inM) return;
             
+            // Snap bullet directly to current lane center so it hits every time
             this.bullets.push({
-                x: this.pX,
+                x: this.lanes[this.cL],
                 z: -6
             });
             this.audio.playLaserSound();
@@ -831,20 +832,20 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // BULLETS UPDATE & COLLISION CHECK WITH OBSTACLES
+            // BULLETS UPDATE & WIDER LANE COLLISION CHECK
             for (let i = this.bullets.length - 1; i >= 0; i--) {
                 let b = this.bullets[i];
-                b.z -= 1.2 * dtFactor;
+                b.z -= 1.5 * dtFactor;
 
-                // Check collision with obstacles/pink things
                 let hitObstacle = false;
                 for (let j = this.obs.length - 1; j >= 0; j--) {
                     let o = this.obs[j];
-                    if (Math.abs(b.x - o.x) < 0.8 && Math.abs(b.z - o.z) < 1.0) {
-                        this.obs.splice(j, 1); // Destroy the obstacle!
+                    // Using a more forgiving hit threshold (1.2 lane width, 2.0 depth range)
+                    if (Math.abs(b.x - o.x) < 1.2 && Math.abs(b.z - o.z) < 2.0) {
+                        this.obs.splice(j, 1);
                         hitObstacle = true;
-                        this.score += 20;
-                        this.coinsCount += 2;
+                        this.score += 25;
+                        this.coinsCount += 3;
                         this.uUI();
                         break;
                     }
