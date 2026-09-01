@@ -179,7 +179,7 @@
         <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
         <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
         <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
-            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot Boss<br>Use Arrow Keys / Space / F on desktop
+            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot Multiple Lasers During Boss Fights<br>Use Arrow Keys / Space / F on desktop
         </div>
         <div>
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
@@ -579,7 +579,6 @@
             this.inBossFight = false;
             this.bossTimerFrames = 0;
             this.bossMaxFrames = 120 * 60; // 2 minutes at 60fps
-            this.bossAttackTimer = 0;
 
             this.boostTimer = 0;
             this.slowTimer = 0;
@@ -688,7 +687,7 @@
             
             this.hud.style.display = 'block';
             this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
-            document.getElementById('btn-fire').style.display = 'none'; // Hidden until boss fight starts
+            document.getElementById('btn-fire').style.display = 'none';
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
             
@@ -705,6 +704,7 @@
 
         shootLaser() {
             if (this.gO || this.inM || !this.inBossFight) return;
+            
             this.bullets.push({
                 x: this.pX,
                 z: -6
@@ -716,7 +716,6 @@
         sp() {
             if (this.gO || this.inM) return;
             
-            // During boss fight, only spawn flying pink laser obstacles
             if (this.inBossFight) {
                 this.obs.push({
                     x: this.lanes[Math.floor(Math.random() * 3)],
@@ -764,7 +763,7 @@
             this.inBossFight = true;
             this.bossTimerFrames = 0;
             this.bossHud.style.display = 'block';
-            document.getElementById('btn-fire').style.display = 'block'; // Show fire button only during boss fight
+            document.getElementById('btn-fire').style.display = 'block'; // Show FIRE button during boss fight
         }
 
         loop(timestamp) {
@@ -794,7 +793,7 @@
                 if (this.bossTimerFrames >= this.bossMaxFrames) {
                     this.inBossFight = false;
                     this.bossHud.style.display = 'none';
-                    document.getElementById('btn-fire').style.display = 'none';
+                    document.getElementById('btn-fire').style.display = 'none'; // Hide FIRE button when boss ends
                     this.score += 1000;
                     this.coinsCount += 100;
                 }
@@ -913,7 +912,6 @@
                 let o = this.obs[i];
                 o.z += dynamicSpd;
 
-                // Collision check (flying boss lasers need jump clearance depending on height, or side dodge)
                 let collisionYThreshold = o.isBossLaser ? 0.6 : 0.2;
                 if (Math.abs(o.x - this.pX) < 0.65 && o.z > -6.6 && o.z < -5.4 && this.pY < collisionYThreshold) {
                     this.gO = 1;
@@ -965,5 +963,6 @@
     </script>
 </body>
 </html>
+
 
 
