@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cyber Run 3D - Boss Edition</title>
-    <!-- Manifest link for PWA / PWABuilder integration -->
-    <link rel="manifest" href="manifest.json">
     <style>
         * {
             box-sizing: border-box;
@@ -35,10 +33,10 @@
             100% { transform: scale(1); filter: drop-shadow(0 0 5px #0f0); }
         }
 
-        @keyframes bossWarning {
-            0% { opacity: 0.2; }
-            50% { opacity: 1; text-shadow: 0 0 20px #f00; }
-            100% { opacity: 0.2; }
+        @keyframes bossFlash {
+            0% { opacity: 0.3; text-shadow: 0 0 10px #f00; }
+            50% { opacity: 1; text-shadow: 0 0 30px #f00, 0 0 10px #ff0; }
+            100% { opacity: 0.3; text-shadow: 0 0 10px #f00; }
         }
 
         .neon-btn {
@@ -95,8 +93,8 @@
             top: 65px;
             left: 50%;
             transform: translateX(-50%);
-            width: 60%;
-            max-width: 400px;
+            width: 70%;
+            max-width: 450px;
             z-index: 20;
             display: none;
             text-align: center;
@@ -105,19 +103,20 @@
 
         .boss-bar-container {
             border: 2px solid #f00;
-            background: rgba(50, 0, 0, 0.5);
-            height: 20px;
+            background: rgba(50, 0, 0, 0.6);
+            height: 22px;
             border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+            margin-top: 5px;
         }
 
         #boss-health-fill {
             background: #f00;
             height: 100%;
             width: 100%;
-            transition: width 0.2s ease;
-            box-shadow: 0 0 10px #f00;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 12px #f00;
         }
 
         .overlay-screen {
@@ -166,7 +165,7 @@
     <canvas id="canvas"></canvas>
     <div id="hud"></div>
     <div id="boss-hud">
-        <div style="color: #f00; font-size: 16px; margin-bottom: 4px; text-shadow: 0 0 8px #f00;">WARNING: BOSS [OVERLORD-9]</div>
+        <div id="boss-warning-text" style="color: #f00; font-size: 18px; margin-bottom: 4px; animation: bossFlash 0.6s infinite;">⚠️ BOSS FIGHT: [OVERLORD-9] ⚠️</div>
         <div class="boss-bar-container"><div id="boss-health-fill"></div></div>
     </div>
 
@@ -723,6 +722,10 @@
 
             this.renderer.render(dt);
 
+            // Continuously grow score as you survive
+            this.score += 0.5 * dtFactor;
+            this.uUI();
+
             // Trigger boss fight at score 1000
             if (!this.inBossFight && this.score >= 1000) {
                 this.triggerBossFight();
@@ -730,8 +733,8 @@
 
             if (this.inBossFight) {
                 this.bossAttackTimer += dtFactor;
-                // Boss shoots lasers every 90 frames
-                if (this.bossAttackTimer > 90) {
+                // Boss shoots tracking lasers every 80 frames
+                if (this.bossAttackTimer > 80) {
                     this.bossAttackTimer = 0;
                     this.obs.push({
                         x: this.lanes[Math.floor(Math.random() * 3)],
@@ -740,8 +743,8 @@
                         isBossLaser: true
                     });
                 }
-                // Reduce boss HP over time automatically or via gameplay
-                this.bossHP -= 0.1 * dtFactor;
+                // Reduce boss HP over time
+                this.bossHP -= 0.12 * dtFactor;
                 document.getElementById('boss-health-fill').style.width = Math.max(0, (this.bossHP / this.maxBossHP) * 100) + '%';
 
                 if (this.bossHP <= 0) {
@@ -802,8 +805,8 @@
                 if (Math.abs(o.x - this.pX) < 0.5 && o.z > -6.6 && o.z < -5.4) {
                     this.coins.splice(i, 1);
                     this.coinsCount++;
-                    this.score += 50;
-                    if (this.inBossFight) this.bossHP -= 3; // Deal extra damage to boss when collecting coins!
+                    this.score += 25;
+                    if (this.inBossFight) this.bossHP -= 4; // Deal extra damage to boss when collecting coins!
                     this.audio.playCoinSound();
                     this.input.vibrate(50);
                     this.uUI();
@@ -885,7 +888,7 @@
 
                 if (o.z > 1) {
                     this.obs.splice(i, 1);
-                    this.score += 10;
+                    this.score += 15;
                     this.spd += 0.002;
                     this.uUI();
                     continue;
