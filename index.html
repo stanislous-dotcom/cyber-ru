@@ -179,7 +179,7 @@
         <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
         <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
         <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
-            Swipe Left/Right • Swipe Up to Jump • Tap FIRE Rapidly During Boss Only<br>Use Arrow Keys / Space / F on desktop
+            Swipe Left/Right • Swipe Up to Jump • Tap FIRE to Shoot Obstacles & Boss<br>Use Arrow Keys / Space / F on desktop
         </div>
         <div>
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
@@ -376,7 +376,7 @@
             }, { passive: true });
 
             document.getElementById('btn-fire').addEventListener('click', () => {
-                if (!this.game.gO && !this.game.inM && this.game.inBossFight) {
+                if (!this.game.gO && !this.game.inM) {
                     this.game.shootLaser();
                 }
             });
@@ -402,7 +402,7 @@
                     this.game.isJ = 1;
                     this.game.jV = 0.17;
                 }
-                if ((e.key === 'f' || e.key === 'F' || e.key === 'Enter') && this.game.inBossFight) {
+                if (e.key === 'f' || e.key === 'F' || e.key === 'Enter') {
                     this.game.shootLaser();
                 }
             });
@@ -578,7 +578,7 @@
             
             this.inBossFight = false;
             this.bossTimerFrames = 0;
-            this.bossMaxFrames = 120 * 60; // 2 minutes at 60fps
+            this.bossMaxFrames = 120 * 60;
 
             this.boostTimer = 0;
             this.slowTimer = 0;
@@ -643,7 +643,7 @@
             this.marketMenu.style.display = 'none';
             this.hud.style.display = 'none';
             this.bossHud.style.display = 'none';
-            document.getElementById('btn-fire').style.display = 'none';
+            document.getElementById('btn-fire').style.display = 'block';
             document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
             document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
         }
@@ -687,7 +687,7 @@
             
             this.hud.style.display = 'block';
             this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
-            document.getElementById('btn-fire').style.display = 'none';
+            document.getElementById('btn-fire').style.display = 'block';
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
             
@@ -703,7 +703,7 @@
         }
 
         shootLaser() {
-            if (this.gO || this.inM || !this.inBossFight) return;
+            if (this.gO || this.inM) return;
             
             this.bullets.push({
                 x: this.pX,
@@ -763,7 +763,6 @@
             this.inBossFight = true;
             this.bossTimerFrames = 0;
             this.bossHud.style.display = 'block';
-            document.getElementById('btn-fire').style.display = 'block';
         }
 
         loop(timestamp) {
@@ -793,7 +792,6 @@
                 if (this.bossTimerFrames >= this.bossMaxFrames) {
                     this.inBossFight = false;
                     this.bossHud.style.display = 'none';
-                    document.getElementById('btn-fire').style.display = 'none';
                     this.score += 1000;
                     this.coinsCount += 100;
                 }
@@ -833,11 +831,26 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
+            // BULLETS UPDATE & COLLISION CHECK WITH OBSTACLES
             for (let i = this.bullets.length - 1; i >= 0; i--) {
                 let b = this.bullets[i];
                 b.z -= 1.2 * dtFactor;
 
-                if (b.z < -45) {
+                // Check collision with obstacles/pink things
+                let hitObstacle = false;
+                for (let j = this.obs.length - 1; j >= 0; j--) {
+                    let o = this.obs[j];
+                    if (Math.abs(b.x - o.x) < 0.8 && Math.abs(b.z - o.z) < 1.0) {
+                        this.obs.splice(j, 1); // Destroy the obstacle!
+                        hitObstacle = true;
+                        this.score += 20;
+                        this.coinsCount += 2;
+                        this.uUI();
+                        break;
+                    }
+                }
+
+                if (hitObstacle || b.z < -45) {
                     this.bullets.splice(i, 1);
                     continue;
                 }
@@ -918,7 +931,6 @@
                     this.renderer.shakeTimer = 0.15;
                     this.input.vibrate([100, 50, 100]);
                     this.bossHud.style.display = 'none';
-                    document.getElementById('btn-fire').style.display = 'none';
 
                     this.totalCredits += this.coinsCount;
                     SafeStorage.setItem('cyber_credits', this.totalCredits);
