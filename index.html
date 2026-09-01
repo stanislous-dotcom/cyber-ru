@@ -738,7 +738,7 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Render and process Coins (Fixed Y height to match player level instead of -0.2)
+            // Render and process Coins (Fixed Y height to 0.0 so they float right at chest/head level)
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
@@ -762,7 +762,7 @@
                     continue;
                 }
 
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.4, o.z));
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, 0.0, o.z));
                 gl.uniform4fv(this.renderer.uc, [1, 0.85, 0, 1]);
                 gl.uniform1f(this.renderer.uGlow, 1.5);
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
@@ -794,7 +794,7 @@
                     continue;
                 }
 
-                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(it.x, -0.4, it.z));
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(it.x, 0.0, it.z));
                 gl.uniform4fv(this.renderer.uc, it.t === 'b' ? [0, 1, 0.2, 1] : (it.t === 's' ? [0.9, 0, 0.9, 1] : [0, 0.8, 1, 1]));
                 gl.uniform1f(this.renderer.uGlow, 2.0);
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
@@ -850,6 +850,5 @@
     </script>
 </body>
 </html>
-
 
 
