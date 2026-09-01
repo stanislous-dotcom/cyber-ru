@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Run 3D - Blaster Edition</title>
+    <title>Cyber Run 3D - Boss Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,7 +11,6 @@
             padding: 0;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: manipulation;
         }
 
         body {
@@ -49,9 +48,10 @@
             font-size: 18px;
             font-weight: 900;
             animation: neonPulse 2s infinite;
-            transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            transition: transform 0.1s ease, background 0.2s ease;
             text-shadow: 0 0 8px #0ff;
             margin: 8px;
+            pointer-events: auto;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -348,13 +348,13 @@
 
         bindEvents() {
             window.addEventListener('touchstart', e => {
-                if (e.target.id === 'btn-music' || e.target.id === 'btn-fire' || e.target.tagName === 'BUTTON') return;
+                if (e.target.tagName === 'BUTTON') return;
                 this.touchX = e.touches[0].clientX;
                 this.touchY = e.touches[0].clientY;
             }, { passive: true });
 
             window.addEventListener('touchend', e => {
-                if (e.target.id === 'btn-music' || e.target.id === 'btn-fire' || e.target.tagName === 'BUTTON') return;
+                if (e.target.tagName === 'BUTTON') return;
                 if (this.game.gO) { this.game.restart(); return; }
                 if (this.game.inM) return;
                 
@@ -375,18 +375,18 @@
                 }
             }, { passive: true });
 
-            document.getElementById('btn-fire').onclick = () => {
+            document.getElementById('btn-fire').addEventListener('click', () => {
                 if (!this.game.gO && !this.game.inM) {
                     this.game.shootLaser();
                 }
-            };
+            });
 
             window.addEventListener('keydown', e => {
                 if (e.key === 'Escape') {
                     this.game.showMainMenu();
                     return;
                 }
-                if (this.game.gO && (e.key === ' ' || e.key === 'Spacebar')) {
+                if (this.game.gO && (e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter')) {
                     this.game.restart();
                     return;
                 }
@@ -577,8 +577,8 @@
             this.inM = 1;
             
             this.inBossFight = false;
-            this.bossHP = 100;
-            this.maxBossHP = 100;
+            this.bossTimerFrames = 0;
+            this.bossMaxFrames = 120 * 60; // 2 minutes at 60fps
             this.bossAttackTimer = 0;
 
             this.boostTimer = 0;
@@ -587,7 +587,7 @@
             
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
-            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
+            this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up'] === 'true';
             this.lastTime = 0;
             
             this.initUI();
@@ -600,26 +600,25 @@
                 musicBtn.innerText = this.audio.isMuted ? '🎵 OFF' : '🎵 ON';
                 musicBtn.style.color = this.audio.isMuted ? '#888' : '#0ff';
                 musicBtn.style.borderColor = this.audio.isMuted ? '#888' : '#0ff';
-                musicBtn.style.textShadow = this.audio.isMuted ? 'none' : '0 0 8px #0ff';
             };
             updateMusicBtn();
             
-            musicBtn.onclick = () => {
+            musicBtn.addEventListener('click', () => {
                 this.audio.toggleMute();
                 updateMusicBtn();
-            };
+            });
 
-            document.getElementById('btn-play').onclick = () => {
+            document.getElementById('btn-play').addEventListener('click', () => {
                 this.audio.init();
                 this.inM = 0;
                 this.init();
                 requestAnimationFrame(t => this.loop(t));
-            };
+            });
 
-            document.getElementById('btn-market').onclick = () => this.showMarket();
-            document.getElementById('btn-market-back').onclick = () => this.showMainMenu();
+            document.getElementById('btn-market').addEventListener('click', () => this.showMarket());
+            document.getElementById('btn-market-back').addEventListener('click', () => this.showMainMenu());
 
-            document.getElementById('buy-magnet').onclick = () => {
+            document.getElementById('buy-magnet').addEventListener('click', () => {
                 if (this.totalCredits >= 100 && !this.magnetUpgraded) {
                     this.totalCredits -= 100;
                     this.magnetUpgraded = true;
@@ -627,7 +626,7 @@
                     SafeStorage.setItem('cyber_magnet_up', 'true');
                     this.updateMarketUI();
                 }
-            };
+            });
 
             this.uUI = () => {
                 let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' :
@@ -681,8 +680,7 @@
             this.spd = 0.30;
             this.gO = 0;
             this.inBossFight = false;
-            this.bossHP = 100;
-            this.maxBossHP = 100;
+            this.bossTimerFrames = 0;
             this.boostTimer = 0;
             this.slowTimer = 0;
             this.magnetTimer = 0;
@@ -751,7 +749,7 @@
 
         triggerBossFight() {
             this.inBossFight = true;
-            this.bossHP = 100;
+            this.bossTimerFrames = 0;
             this.bossHud.style.display = 'block';
         }
 
@@ -774,6 +772,7 @@
             }
 
             if (this.inBossFight) {
+                this.bossTimerFrames += dtFactor;
                 this.bossAttackTimer += dtFactor;
                 if (this.bossAttackTimer > 120) {
                     this.bossAttackTimer = 0;
@@ -785,13 +784,14 @@
                     });
                 }
                 
-                document.getElementById('boss-health-fill').style.width = Math.max(0, (this.bossHP / this.maxBossHP) * 100) + '%';
+                let remainingRatio = Math.max(0, 1 - (this.bossTimerFrames / this.bossMaxFrames));
+                document.getElementById('boss-health-fill').style.width = (remainingRatio * 100) + '%';
 
-                if (this.bossHP <= 0) {
+                if (this.bossTimerFrames >= this.bossMaxFrames) {
                     this.inBossFight = false;
                     this.bossHud.style.display = 'none';
-                    this.score += 500;
-                    this.coinsCount += 50;
+                    this.score += 1000;
+                    this.coinsCount += 100;
                 }
             }
 
@@ -817,7 +817,6 @@
 
             const gl = this.renderer.gl;
 
-            // Render Boss Avatar
             if (this.inBossFight) {
                 gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(0, 1.2, -35, 0, 2.5));
                 gl.uniform4fv(this.renderer.uc, [1, 0, 0, 1]); 
@@ -825,34 +824,26 @@
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
             }
 
-            // Render Player Avatar Block
             gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
             gl.uniform4fv(this.renderer.uc, this.boostTimer > 0 ? [0, 1, 0.4, 1] : [0, 1, 1, 1]);
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Render and process Player Bullets (Shooting mechanic)
             for (let i = this.bullets.length - 1; i >= 0; i--) {
                 let b = this.bullets[i];
-                b.z -= 1.2 * dtFactor; // Bullets fly forward away from player
+                b.z -= 1.2 * dtFactor;
 
-                // Check bullet hit on Boss
-                if (this.inBossFight && b.z <= -34 && b.z >= -36 && Math.abs(b.x) < 0.8) {
-                    this.bossHP -= 10;
-                    this.bullets.splice(i, 1);
-                    this.input.vibrate(40);
-                    continue;
-                }
-
-                // Check bullet hit on obstacles
                 let hitObs = false;
-                for (let j = this.obs.length - 1; j >= 0; j--) {
-                    let o = this.obs[j];
-                    if (Math.abs(b.x - o.x) < 0.6 && Math.abs(b.z - o.z) < 1.0) {
-                        this.obs.splice(j, 1); // Destroy obstacle!
-                        hitObs = true;
-                        this.score += 10;
-                        break;
+                // Only destroy regular obstacles when NOT in boss fight mode
+                if (!this.inBossFight) {
+                    for (let j = this.obs.length - 1; j >= 0; j--) {
+                        let o = this.obs[j];
+                        if (Math.abs(b.x - o.x) < 0.6 && Math.abs(b.z - o.z) < 1.0) {
+                            this.obs.splice(j, 1);
+                            hitObs = true;
+                            this.score += 10;
+                            break;
+                        }
                     }
                 }
 
@@ -862,12 +853,11 @@
                 }
 
                 gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(b.x, -0.2, b.z, 0, 0.4));
-                gl.uniform4fv(this.renderer.uc, [1, 1, 0, 1]); // Yellow bright laser shots
+                gl.uniform4fv(this.renderer.uc, [1, 1, 0, 1]);
                 gl.uniform1f(this.renderer.uGlow, 3.0);
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
             }
 
-            // Render and process Coins
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
@@ -897,7 +887,6 @@
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
             }
 
-            // Render and process Powerup Items
             for (let i = this.items.length - 1; i >= 0; i--) {
                 let it = this.items[i];
                 it.z += dynamicSpd;
@@ -929,7 +918,6 @@
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
             }
 
-            // Render and process Obstacles / Boss Lasers
             for (let i = this.obs.length - 1; i >= 0; i--) {
                 let o = this.obs[i];
                 o.z += dynamicSpd;
@@ -954,9 +942,12 @@
                     this.hud.innerHTML = `GAME OVER<br>` + 
                            (newBest ? `<span class="new-best-anim">NEW BEST!</span><br>` : '') + 
                            `<span style="font-size:18px;color:#888;">SCORE: ${Math.floor(this.score)}</span><br>` + 
-                           `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px;">RETRY</button>` + 
-                           `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px;">MENU</button>`;
+                           `<button id="btn-retry" class="neon-btn" style="margin-top:15px; pointer-events:auto;">RETRY</button>` + 
+                           `<button id="btn-menu" class="neon-btn purple" style="margin-top:15px; pointer-events:auto;">MENU</button>`;
                     this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#f14;font-size:44px;text-align:center;pointer-events:auto;';
+                    
+                    document.getElementById('btn-retry').onclick = () => window.game.restart();
+                    document.getElementById('btn-menu').onclick = () => window.game.showMainMenu();
                     return;
                 }
 
@@ -980,6 +971,5 @@
     </script>
 </body>
 </html>
-
 
 
