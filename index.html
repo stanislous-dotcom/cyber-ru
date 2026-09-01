@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Run 3D</title>
+    <title>Cyber Run 3D - Boss Edition</title>
     <!-- Manifest link for PWA / PWABuilder integration -->
     <link rel="manifest" href="manifest.json">
     <style>
@@ -24,30 +24,21 @@
         }
         
         @keyframes neonPulse {
-            0% {
-                box-shadow: 0 0 10px rgba(0,255,255,0.4);
-            }
-            50% {
-                box-shadow: 0 0 25px rgba(0,255,255,0.8);
-            }
-            100% {
-                box-shadow: 0 0 10px rgba(0,255,255,0.4);
-            }
+            0% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
+            50% { box-shadow: 0 0 25px rgba(0,255,255,0.8); }
+            100% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
         }
         
         @keyframes newBestPulse {
-            0% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 5px #0f0);
-            }
-            50% {
-                transform: scale(1.15);
-                filter: drop-shadow(0 0 20px #0f0);
-            }
-            100% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 5px #0f0);
-            }
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px #0f0); }
+            50% { transform: scale(1.15); filter: drop-shadow(0 0 20px #0f0); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 5px #0f0); }
+        }
+
+        @keyframes bossWarning {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; text-shadow: 0 0 20px #f00; }
+            100% { opacity: 0.2; }
         }
 
         .neon-btn {
@@ -66,13 +57,8 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .neon-btn:hover {
-            background: rgba(0, 255, 255, 0.15);
-        }
-
-        .neon-btn:active {
-            transform: scale(0.95);
-        }
+        .neon-btn:hover { background: rgba(0, 255, 255, 0.15); }
+        .neon-btn:active { transform: scale(0.95); }
 
         .neon-btn.purple {
             border-color: #f0f;
@@ -81,10 +67,7 @@
             animation: none;
             box-shadow: 0 0 10px rgba(255,0,255,0.4);
         }
-
-        .neon-btn.purple:hover {
-            background: rgba(255, 0, 255, 0.15);
-        }
+        .neon-btn.purple:hover { background: rgba(255, 0, 255, 0.15); }
 
         #canvas {
             position: fixed;
@@ -105,6 +88,36 @@
             z-index: 20;
             display: none;
             pointer-events: none;
+        }
+
+        #boss-hud {
+            position: fixed;
+            top: 65px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            max-width: 400px;
+            z-index: 20;
+            display: none;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .boss-bar-container {
+            border: 2px solid #f00;
+            background: rgba(50, 0, 0, 0.5);
+            height: 20px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        #boss-health-fill {
+            background: #f00;
+            height: 100%;
+            width: 100%;
+            transition: width 0.2s ease;
+            box-shadow: 0 0 10px #f00;
         }
 
         .overlay-screen {
@@ -152,6 +165,10 @@
 <body>
     <canvas id="canvas"></canvas>
     <div id="hud"></div>
+    <div id="boss-hud">
+        <div style="color: #f00; font-size: 16px; margin-bottom: 4px; text-shadow: 0 0 8px #f00;">WARNING: BOSS [OVERLORD-9]</div>
+        <div class="boss-bar-container"><div id="boss-health-fill"></div></div>
+    </div>
 
     <!-- GLOBAL AUDIO TOGGLE BUTTON -->
     <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; animation: none;">🎵 ON</button>
@@ -191,9 +208,6 @@
     </div>
 
     <script>
-    /**
-     * Safe Storage Wrapper to prevent LocalStorage security block exceptions in isolated/sandboxed contexts.
-     */
     const SafeStorage = {
         data: {},
         getItem(key) {
@@ -206,9 +220,6 @@
         }
     };
 
-    /**
-     * Web Audio API Synthesizer & Sound FX Engine
-     */
     class AudioSystem {
         constructor() {
             this.ctx = null;
@@ -259,9 +270,7 @@
                     o.start(t);
                     o.stop(t + 0.4);
                     this.step++;
-                } catch(e) {
-                    // Audio context safety catch
-                }
+                } catch(e) {}
             }, this.tempo);
         }
 
@@ -297,14 +306,9 @@
             } catch(e) {}
         }
 
-        resetCombo() {
-            this.coinCombo = 0;
-        }
+        resetCombo() { this.coinCombo = 0; }
     }
 
-    /**
-     * Keyboard and Mobile Touch Control Handler
-     */
     class InputManager {
         constructor(game) {
             this.game = game;
@@ -373,9 +377,6 @@
         }
     }
 
-    /**
-     * Lightweight WebGL Custom Graphics Renderer Engine
-     */
     class WebGLRenderer {
         constructor(canvas) {
             this.c = canvas;
@@ -439,9 +440,7 @@
             this.vB = gl.createBuffer();
             this.iB = gl.createBuffer();
             
-            // Comprehensive geometry vertex array (Cubes, Pyramids, HUD assets)
             const vertices = new Float32Array([
-                // Cube mesh for obstacles / player model (indices 0-23, offset 0)
                 -0.4,-0.4,0.4,  0.4,-0.4,0.4,  0.4,0.4,0.4, -0.4,0.4,0.4,
                 -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4, 0.4,-0.4,-0.4,
                 -0.4,0.4,-0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,0.4,-0.4,
@@ -449,21 +448,18 @@
                 -0.4,-0.4,0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,-0.4,0.4,
                 -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4,  0.4,-0.4,-0.4,
 
-                // Diamond/Coin mesh components (indices for coin starts at offset index 36, vertex offset 24)
-                 0.0,  0.4,  0.0, // Top vertex (24)
-                -0.3,  0.0,  0.3, // Front-Left (25)
-                 0.3,  0.0,  0.3, // Front-Right (26)
-                 0.3,  0.0, -0.3, // Back-Right (27)
-                -0.3,  0.0, -0.3, // Back-Left (28)
-                 0.0, -0.4,  0.0  // Bottom vertex (29)
+                 0.0,  0.4,  0.0,
+                -0.3,  0.0,  0.3,
+                 0.3,  0.0,  0.3,
+                 0.3,  0.0, -0.3,
+                -0.3,  0.0, -0.3,
+                 0.0, -0.4,  0.0
             ]);
 
             const indices = new Uint16Array([
-                // Cube indices (24 elements)
-                0,1,2, 0,2,3,       4,5,6, 4,6,7,
-                8,9,10, 8,10,11,    12,13,14, 12,14,15,
+                0,1,2, 0,2,3,        4,5,6, 4,6,7,
+                8,9,10, 8,10,11,     12,13,14, 12,14,15,
                 
-                // Coin/Diamond indices (18 elements starting at byte offset 24 * 2 = 48)
                 24,25,26,  24,26,27,  24,27,28,  24,28,25,
                 29,26,25,  29,27,26,  29,28,27,  29,25,28
             ]);
@@ -518,13 +514,11 @@
         }
     }
 
-    /**
-     * Main Core Gameplay Loop and State Manager
-     */
     class CyberRunGame {
         constructor() {
             this.canvas = document.getElementById('canvas');
             this.hud = document.getElementById('hud');
+            this.bossHud = document.getElementById('boss-hud');
             this.mainMenu = document.getElementById('main-menu');
             this.marketMenu = document.getElementById('market-menu');
             
@@ -549,6 +543,12 @@
             this.gO = 0;
             this.inM = 1;
             
+            // Boss variables
+            this.inBossFight = false;
+            this.bossHP = 100;
+            this.maxBossHP = 100;
+            this.bossAttackTimer = 0;
+
             this.boostTimer = 0;
             this.slowTimer = 0;
             this.magnetTimer = 0;
@@ -608,9 +608,11 @@
         showMainMenu() {
             this.inM = 1;
             this.gO = 0;
+            this.inBossFight = false;
             this.mainMenu.style.display = 'flex';
             this.marketMenu.style.display = 'none';
             this.hud.style.display = 'none';
+            this.bossHud.style.display = 'none';
             document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
             document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
         }
@@ -644,6 +646,9 @@
             this.coinsCount = 0;
             this.spd = 0.30;
             this.gO = 0;
+            this.inBossFight = false;
+            this.bossHP = 100;
+            this.maxBossHP = 100;
             this.boostTimer = 0;
             this.slowTimer = 0;
             this.magnetTimer = 0;
@@ -667,11 +672,13 @@
 
         sp() {
             if (this.gO || this.inM) return;
-            this.obs.push({
-                x: this.lanes[Math.floor(Math.random() * 3)],
-                z: -45,
-                hScale: Math.random() > 0.5 ? 1.8 : 1.0
-            });
+            if (!this.inBossFight) {
+                this.obs.push({
+                    x: this.lanes[Math.floor(Math.random() * 3)],
+                    z: -45,
+                    hScale: Math.random() > 0.5 ? 1.8 : 1.0
+                });
+            }
             setTimeout(() => this.sp(), Math.random() * 400 + 350);
         }
 
@@ -699,6 +706,12 @@
             setTimeout(() => this.spI(), Math.random() * 2000 + 1500);
         }
 
+        triggerBossFight() {
+            this.inBossFight = true;
+            this.bossHud.style.display = 'block';
+            this.obs = []; // Clear current obstacles for boss projectiles
+        }
+
         loop(timestamp) {
             if (this.gO || this.inM) return;
             requestAnimationFrame(t => this.loop(t));
@@ -709,6 +722,37 @@
             let dtFactor = dt * 60;
 
             this.renderer.render(dt);
+
+            // Trigger boss fight at score 1000
+            if (!this.inBossFight && this.score >= 1000) {
+                this.triggerBossFight();
+            }
+
+            if (this.inBossFight) {
+                this.bossAttackTimer += dtFactor;
+                // Boss shoots lasers every 90 frames
+                if (this.bossAttackTimer > 90) {
+                    this.bossAttackTimer = 0;
+                    this.obs.push({
+                        x: this.lanes[Math.floor(Math.random() * 3)],
+                        z: -45,
+                        hScale: 1.5,
+                        isBossLaser: true
+                    });
+                }
+                // Reduce boss HP over time automatically or via gameplay
+                this.bossHP -= 0.1 * dtFactor;
+                document.getElementById('boss-health-fill').style.width = Math.max(0, (this.bossHP / this.maxBossHP) * 100) + '%';
+
+                if (this.bossHP <= 0) {
+                    // Boss defeated!
+                    this.inBossFight = false;
+                    this.bossHud.style.display = 'none';
+                    this.score += 500;
+                    this.coinsCount += 50;
+                    this.obs = [];
+                }
+            }
 
             if (this.boostTimer > 0) this.boostTimer -= dtFactor;
             if (this.slowTimer > 0) this.slowTimer -= dtFactor;
@@ -732,13 +776,21 @@
 
             const gl = this.renderer.gl;
 
+            // Render Boss Avatar when in Boss fight
+            if (this.inBossFight) {
+                gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(0, 1.2, -35, 0, 2.5));
+                gl.uniform4fv(this.renderer.uc, [1, 0, 0, 1]); // Red threatening boss core
+                gl.uniform1f(this.renderer.uGlow, 2.5);
+                gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+            }
+
             // Render Player Avatar Block
             gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
             gl.uniform4fv(this.renderer.uc, this.boostTimer > 0 ? [0, 1, 0.4, 1] : [0, 1, 1, 1]);
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Render and process Coins (Fixed Y height to 0.0 so they float right at chest/head level)
+            // Render and process Coins
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
@@ -751,6 +803,7 @@
                     this.coins.splice(i, 1);
                     this.coinsCount++;
                     this.score += 50;
+                    if (this.inBossFight) this.bossHP -= 3; // Deal extra damage to boss when collecting coins!
                     this.audio.playCoinSound();
                     this.input.vibrate(50);
                     this.uUI();
@@ -809,6 +862,7 @@
                     this.gO = 1;
                     this.renderer.shakeTimer = 0.15;
                     this.input.vibrate([100, 50, 100]);
+                    this.bossHud.style.display = 'none';
 
                     this.totalCredits += this.coinsCount;
                     SafeStorage.setItem('cyber_credits', this.totalCredits);
@@ -821,10 +875,10 @@
                     }
 
                     this.hud.innerHTML = `GAME OVER<br>` + 
-                         (newBest ? `<span class="new-best-anim">NEW BEST!</span><br>` : '') + 
-                         `<span style="font-size:18px;color:#888;">SCORE: ${Math.floor(this.score)}</span><br>` + 
-                         `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px;">RETRY</button>` + 
-                         `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px;">MENU</button>`;
+                           (newBest ? `<span class="new-best-anim">NEW BEST!</span><br>` : '') + 
+                           `<span style="font-size:18px;color:#888;">SCORE: ${Math.floor(this.score)}</span><br>` + 
+                           `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px;">RETRY</button>` + 
+                           `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px;">MENU</button>`;
                     this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#f14;font-size:44px;text-align:center;pointer-events:auto;';
                     return;
                 }
@@ -838,14 +892,13 @@
                 }
 
                 gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.4, o.z, 0, o.hScale));
-                gl.uniform4fv(this.renderer.uc, [1, 0, 0.25, 1]);
-                gl.uniform1f(this.renderer.uGlow, 1.5);
+                gl.uniform4fv(this.renderer.uc, o.isBossLaser ? [1, 0, 0.8, 1] : [1, 0, 0.25, 1]);
+                gl.uniform1f(this.renderer.uGlow, o.isBossLaser ? 2.5 : 1.5);
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
             }
         }
     }
 
-    // Initialize the game instance
     window.game = new CyberRunGame();
     </script>
 </body>
