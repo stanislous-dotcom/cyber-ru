@@ -134,11 +134,63 @@
             animation: newBestPulse 1s infinite;
             margin: 10px 0;
         }
+
+        /* Custom Modal Styling to replace browser prompt */
+        #custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 100;
+            background: rgba(3,3,10,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .modal-box {
+            border: 2px solid #f44;
+            background: #0a0508;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255,68,68,0.4);
+            max-width: 320px;
+            width: 90%;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: #000;
+            border: 2px solid #0ff;
+            color: #0ff;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: 900;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+            outline: none;
+        }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
     <div id="hud"></div>
+
+    <!-- CUSTOM SECURITY CODE MODAL -->
+    <div id="custom-modal">
+        <div class="modal-box">
+            <div style="color: #f44; font-size: 16px; text-shadow: 0 0 8px #f44;">ENTER SECURITY CODE</div>
+            <input type="password" id="modal-code-input" class="modal-input" autocomplete="off" placeholder="••••">
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="modal-submit" class="neon-btn danger" style="padding: 8px; font-size: 14px; margin:0;">CONFIRM</button>
+                <button id="modal-cancel" class="neon-btn" style="padding: 8px; font-size: 14px; margin:0;">CANCEL</button>
+            </div>
+        </div>
+    </div>
 
     <!-- GLOBAL AUDIO TOGGLE BUTTON -->
     <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; width: auto; animation: none;">🎵 ON</button>
@@ -182,7 +234,7 @@
     </div>
 
     <script>
-    console.log("CYBER RUN - CLEAN RESET FIX LOADED");
+    console.log("CYBER RUN - CLEAN MODAL RESET LOADED");
 
     const SafeStorage = {
         getItem(key) {
@@ -296,13 +348,13 @@
 
         bindEvents() {
             window.addEventListener('touchstart', e => {
-                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
+                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
                 this.touchX = e.touches[0].clientX;
                 this.touchY = e.touches[0].clientY;
             }, { passive: true });
 
             window.addEventListener('touchend', e => {
-                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON') return;
+                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
                 if (this.game.gO) { this.game.restart(); return; }
                 if (this.game.inM) return;
                 
@@ -321,6 +373,7 @@
             }, { passive: true });
 
             window.addEventListener('keydown', e => {
+                if (e.target.tagName === 'INPUT') return;
                 if (e.key === 'Escape') { this.game.showMainMenu(); return; }
                 if (this.game.gO && (e.key === ' ' || e.key === 'Spacebar')) { this.game.restart(); return; }
                 if (this.game.gO || this.game.inM) return;
@@ -539,9 +592,23 @@
                 }
             };
 
+            // Custom Modal Logic for Reset Progress
+            let modal = document.getElementById('custom-modal');
+            let modalInput = document.getElementById('modal-code-input');
+
             document.getElementById('btn-main-reset').onclick = () => {
-                let code = prompt("Enter security code to wipe all progress:");
-                let numericCode = parseInt(code ? code.trim() : "");
+                modalInput.value = '';
+                modal.style.display = 'flex';
+                modalInput.focus();
+            };
+
+            document.getElementById('modal-cancel').onclick = () => {
+                modal.style.display = 'none';
+            };
+
+            document.getElementById('modal-submit').onclick = () => {
+                let numericCode = parseInt(modalInput.value ? modalInput.value.trim() : "");
+                modal.style.display = 'none';
                 if (!isNaN(numericCode) && numericCode * 3 === 20100) {
                     SafeStorage.removeItem('cyber_credits');
                     SafeStorage.removeItem('cyber_high_score');
@@ -550,8 +617,16 @@
                     this.updateMarketUI();
                     this.showMainMenu();
                     alert("All progress has been wiped successfully.");
-                } else if (code !== null) {
+                } else {
                     alert("Incorrect security code!");
+                }
+            };
+
+            modalInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('modal-submit').click();
+                } else if (e.key === 'Escape') {
+                    modal.style.display = 'none';
                 }
             };
 
@@ -803,3 +878,4 @@
 </html>
 
 
+            
