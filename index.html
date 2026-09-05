@@ -326,7 +326,7 @@
     </div>
 
     <script>
-    console.log("CYBER RUN - BOT BATTLE EDITION LOADED");
+    console.log("CYBER RUN - BOT BATTLE RENDERED");
 
     const SafeStorage = {
         getItem(key) {
@@ -848,12 +848,11 @@
                     this.bots.push({
                         name: botNames[i] || (`Bot_${i+1}`),
                         lane: Math.floor(Math.random() * 3),
-                        x: 0,
+                        x: this.lanes[Math.floor(Math.random() * 3)],
                         y: -0.4,
-                        z: -5 - (i * 1.5),
+                        z: -15 - (i * 3),
                         dead: false,
-                        score: 0,
-                        jumpTimer: 0
+                        score: 0
                     });
                 }
             }
@@ -954,20 +953,21 @@
 
             // Render and Update Bots
             if (this.isBotMode) {
-                let reactionChance = 0.02;
-                if (this.botConfigDiff === 'easy') reactionChance = 0.01;
-                if (this.botConfigDiff === 'hard') reactionChance = 0.05;
-                if (this.botConfigDiff === 'veryhard') reactionChance = 0.10;
-                if (this.botConfigDiff === 'demon') reactionChance = 0.25;
+                let reactionRate = 0.03;
+                if (this.botConfigDiff === 'easy') reactionRate = 0.01;
+                else if (this.botConfigDiff === 'mid') reactionRate = 0.04;
+                else if (this.botConfigDiff === 'hard') reactionRate = 0.09;
+                else if (this.botConfigDiff === 'veryhard') reactionRate = 0.18;
+                else if (this.botConfigDiff === 'demon') reactionRate = 0.40;
 
                 for (let b of this.bots) {
                     if (b.dead) continue;
                     b.score += 0.5 * dtFactor;
 
-                    // Bot AI obstacle avoidance
+                    // Bot reacts to upcoming obstacles in their lane
                     for (let o of this.obs) {
-                        if (Math.abs(o.z - (-6)) < 8 && Math.abs(o.x - this.lanes[b.lane]) < 0.5) {
-                            if (Math.random() < reactionChance) {
+                        if (o.z > -15 && o.z < -4 && Math.abs(o.x - this.lanes[b.lane]) < 0.5) {
+                            if (Math.random() < reactionRate) {
                                 let safeLanes = [0, 1, 2].filter(l => l !== b.lane);
                                 b.lane = safeLanes[Math.floor(Math.random() * safeLanes.length)];
                             }
@@ -979,27 +979,32 @@
                     // Bot collision check with obstacles
                     for (let o of this.obs) {
                         if (Math.abs(o.x - b.x) < 0.65 && o.z > -6.6 && o.z < -5.4) {
-                            if (Math.random() > reactionChance * 3) {
+                            // Higher difficulty = bots crash less often
+                            let crashChance = 0.5;
+                            if (this.botConfigDiff === 'easy') crashChance = 0.8;
+                            if (this.botConfigDiff === 'demon') crashChance = 0.05;
+
+                            if (Math.random() < crashChance) {
                                 b.dead = true;
                             }
                         }
                     }
 
-                    gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(b.x, -0.4, -6.2));
-                    gl.uniform4fv(this.renderer.uc, [1, 0.5, 0, 1]); // Orange bots
-                    gl.uniform1f(this.renderer.uGlow, 1.2);
+                    gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(b.x, -0.4, -6.0));
+                    gl.uniform4fv(this.renderer.uc, [1, 0.4, 0, 1]); // Glowing Orange Bots
+                    gl.uniform1f(this.renderer.uGlow, 1.4);
                     gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
                 }
 
-                // Check Win Condition in Bot Mode (All bots dead)
+                // Check Win Condition in Bot Mode (All bots eliminated)
                 let aliveBots = this.bots.filter(b => !b.dead);
                 if (aliveBots.length === 0) {
                     this.gO = 1;
-                    this.totalCredits += this.coinsCount + 100; // Bonus credits for winning bot battle
+                    this.totalCredits += this.coinsCount + 100;
                     SafeStorage.setItem('cyber_credits', this.totalCredits);
 
                     this.hud.innerHTML = `VICTORY!<br>` +
-                         `<span style="font-size:18px;color:#0f0;">YOU DEFEATED ALL BOTS! (+100 BONUS CR)</span><br>` +
+                         `<span style="font-size:18px;color:#0f0;">YOU OUTLIVED ALL BOTS! (+100 BONUS CR)</span><br>` +
                          `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px; width:auto; padding:10px 20px;">PLAY AGAIN</button>` + 
                          `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px; width:auto; padding:10px 20px;">MENU</button>`;
                     this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#0f0;font-size:38px;text-align:center;pointer-events:auto;';
@@ -1126,4 +1131,5 @@
     </script>
 </body>
 </html>
+
 
