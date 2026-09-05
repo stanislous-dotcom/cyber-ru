@@ -24,30 +24,15 @@
         }
         
         @keyframes neonPulse {
-            0% {
-                box-shadow: 0 0 10px rgba(0,255,255,0.4);
-            }
-            50% {
-                box-shadow: 0 0 25px rgba(0,255,255,0.8);
-            }
-            100% {
-                box-shadow: 0 0 10px rgba(0,255,255,0.4);
-            }
+            0% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
+            50% { box-shadow: 0 0 25px rgba(0,255,255,0.8); }
+            100% { box-shadow: 0 0 10px rgba(0,255,255,0.4); }
         }
         
         @keyframes newBestPulse {
-            0% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 5px #0f0);
-            }
-            50% {
-                transform: scale(1.15);
-                filter: drop-shadow(0 0 20px #0f0);
-            }
-            100% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 5px #0f0);
-            }
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px #0f0); }
+            50% { transform: scale(1.15); filter: drop-shadow(0 0 20px #0f0); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 5px #0f0); }
         }
 
         .neon-btn {
@@ -55,24 +40,19 @@
             border-radius: 6px;
             background: #000;
             color: #0ff;
-            padding: 12px 28px;
+            padding: 10px 20px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 900;
             animation: neonPulse 2s infinite;
             transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
             text-shadow: 0 0 8px #0ff;
-            margin: 8px;
+            margin: 6px;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .neon-btn:hover {
-            background: rgba(0, 255, 255, 0.15);
-        }
-
-        .neon-btn:active {
-            transform: scale(0.95);
-        }
+        .neon-btn:hover { background: rgba(0, 255, 255, 0.15); }
+        .neon-btn:active { transform: scale(0.95); }
 
         .neon-btn.purple {
             border-color: #f0f;
@@ -81,10 +61,7 @@
             animation: none;
             box-shadow: 0 0 10px rgba(255,0,255,0.4);
         }
-
-        .neon-btn.purple:hover {
-            background: rgba(255, 0, 255, 0.15);
-        }
+        .neon-btn.purple:hover { background: rgba(255, 0, 255, 0.15); }
 
         .neon-btn.danger {
             border-color: #f44;
@@ -93,10 +70,7 @@
             animation: none;
             box-shadow: 0 0 10px rgba(255,68,68,0.4);
         }
-
-        .neon-btn.danger:hover {
-            background: rgba(255, 68, 68, 0.15);
-        }
+        .neon-btn.danger:hover { background: rgba(255, 68, 68, 0.15); }
 
         #canvas {
             position: fixed;
@@ -133,21 +107,23 @@
             background: radial-gradient(circle, rgba(15,10,35,0.95) 0%, rgba(5,5,15,0.98) 100%);
             color: #0ff;
             text-shadow: 0 0 8px #0ff;
+            overflow-y: auto;
+            padding: 20px;
         }
 
         .shop-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 20px 0;
-            max-width: 500px;
-            width: 90%;
+            gap: 12px;
+            margin: 15px 0;
+            max-width: 480px;
+            width: 100%;
         }
 
         .shop-item {
             border: 1px solid #0ff;
             background: rgba(0,255,255,0.05);
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             text-align: center;
         }
@@ -170,10 +146,10 @@
 
     <!-- MAIN MENU OVERLAY -->
     <div id="main-menu" class="overlay-screen">
-        <h1 style="font-size: 56px; margin: 0; text-shadow: 0 0 15px #0ff; letter-spacing: 2px;">CYBER RUN</h1>
-        <div id="menu-high-score" style="color: #ffd700; margin: 10px 0; font-size: 22px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
-        <div id="menu-credits" style="color: #0ff; margin-bottom: 15px; font-size: 18px;">TOTAL CREDITS: 0</div>
-        <div style="font-size: 14px; color: #888; margin-bottom: 25px; text-shadow: none; text-align: center; max-width: 80%;">
+        <h1 style="font-size: 52px; margin: 0; text-shadow: 0 0 15px #0ff; letter-spacing: 2px;">CYBER RUN</h1>
+        <div id="menu-high-score" style="color: #ffd700; margin: 8px 0; font-size: 20px; text-shadow: 0 0 8px #ffd700;">HIGH SCORE: 0</div>
+        <div id="menu-credits" style="color: #0ff; margin-bottom: 12px; font-size: 16px;">TOTAL CREDITS: 0</div>
+        <div style="font-size: 13px; color: #888; margin-bottom: 20px; text-shadow: none; text-align: center; max-width: 80%;">
             Swipe Left/Right to change lanes • Swipe Up to Jump<br>Use Arrow Keys / Spacebar on desktop
         </div>
         <div>
@@ -184,35 +160,31 @@
 
     <!-- MARKETPLACE OVERLAY -->
     <div id="market-menu" class="overlay-screen" style="display: none;">
-        <h2 style="font-size: 38px; color: #f0f; text-shadow: 0 0 12px #f0f;">CYBER MARKET</h2>
-        <div id="market-credits" style="color: #ffd700; font-size: 20px; margin: 10px 0; text-shadow: 0 0 6px #ffd700;">CREDITS: 0</div>
+        <h2 style="font-size: 34px; color: #f0f; text-shadow: 0 0 12px #f0f;">CYBER MARKET</h2>
+        <div id="market-credits" style="color: #ffd700; font-size: 18px; margin: 8px 0; text-shadow: 0 0 6px #ffd700;">CREDITS: 0</div>
         
         <div class="shop-grid">
             <div class="shop-item">
-                <div style="color:#0f0; font-size:16px;">Magnet Boost</div>
-                <div style="font-size: 12px; color:#aaa; margin: 5px 0;">Extended field duration (+40%)</div>
-                <button id="buy-magnet" class="neon-btn" style="font-size:14px; padding:6px 12px; margin-top:5px;">100 CR</button>
+                <div style="color:#0f0; font-size:15px;">Magnet Boost</div>
+                <div style="font-size: 11px; color:#aaa; margin: 4px 0;">Extended field duration (+40%)</div>
+                <button id="buy-magnet" class="neon-btn" style="font-size:13px; padding:5px 10px; margin-top:4px;">100 CR</button>
             </div>
             <div class="shop-item">
-                <div style="color:#f0f; font-size:16px;">Cyan Trail</div>
-                <div style="font-size: 12px; color:#aaa; margin: 5px 0;">Neon Particle Cosmetic</div>
-                <button id="buy-skin" class="neon-btn purple" style="font-size:14px; padding:6px 12px; margin-top:5px;">250 CR</button>
+                <div style="color:#f0f; font-size:15px;">Cyan Trail</div>
+                <div style="font-size: 11px; color:#aaa; margin: 4px 0;">Neon Particle Cosmetic</div>
+                <button id="buy-skin" class="neon-btn purple" style="font-size:13px; padding:5px 10px; margin-top:4px;">250 CR</button>
             </div>
         </div>
         
-        <div>
-            <button id="btn-reset" class="neon-btn danger" style="font-size: 14px; padding: 8px 16px;">RESET PROGRESS</button>
-            <button id="btn-market-back" class="neon-btn" style="font-size: 14px; padding: 8px 16px;">BACK TO MENU</button>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+            <button id="btn-reset" class="neon-btn danger">RESET PROGRESS</button>
+            <button id="btn-market-back" class="neon-btn">BACK TO MENU</button>
         </div>
     </div>
 
     <script>
-    // Verification log to ensure cache is cleared
-    console.log("CYBER RUN - RESET CODE V4 LOADED SUCCESSFULLY");
+    console.log("CYBER RUN - SCROLL & RESET FIX V5 LOADED");
 
-    /**
-     * Safe Storage Wrapper to prevent LocalStorage security block exceptions in isolated/sandboxed contexts.
-     */
     const SafeStorage = {
         data: {},
         getItem(key) {
@@ -225,9 +197,6 @@
         }
     };
 
-    /**
-     * Web Audio API Synthesizer & Sound FX Engine
-     */
     class AudioSystem {
         constructor() {
             this.ctx = null;
@@ -265,16 +234,12 @@
                     let o = this.ctx.createOscillator();
                     let g = this.ctx.createGain();
                     let t = this.ctx.currentTime;
-                    
                     o.type = 'sawtooth';
                     o.frequency.setValueAtTime(this.melody[this.step % this.melody.length], t);
-                    
                     g.gain.setValueAtTime(0.04, t);
                     g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-                    
                     o.connect(g);
                     g.connect(this.ctx.destination);
-                    
                     o.start(t);
                     o.stop(t + 0.4);
                     this.step++;
@@ -298,30 +263,21 @@
                 let g = this.ctx.createGain();
                 let t = this.ctx.currentTime;
                 let baseFreq = 440 + (this.coinCombo * 60);
-                
                 o.type = 'sine';
                 o.frequency.setValueAtTime(Math.min(baseFreq, 1600), t);
-                
                 g.gain.setValueAtTime(0.1, t);
                 g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-                
                 o.connect(g);
                 g.connect(this.ctx.destination);
-                
                 o.start(t);
                 o.stop(t + 0.15);
                 this.coinCombo++;
             } catch(e) {}
         }
 
-        resetCombo() {
-            this.coinCombo = 0;
-        }
+        resetCombo() { this.coinCombo = 0; }
     }
 
-    /**
-     * Keyboard and Mobile Touch Control Handler
-     */
     class InputManager {
         constructor(game) {
             this.game = game;
@@ -352,11 +308,8 @@
                 let dy = e.changedTouches[0].clientY - this.touchY;
                 
                 if (Math.abs(dx) > Math.abs(dy)) {
-                    if (dx > 30 && this.game.cL < 2) {
-                        this.game.cL++;
-                    } else if (dx < -30 && this.game.cL > 0) {
-                        this.game.cL--;
-                    }
+                    if (dx > 30 && this.game.cL < 2) this.game.cL++;
+                    else if (dx < -30 && this.game.cL > 0) this.game.cL--;
                 } else {
                     if (dy < -30 && !this.game.isJ) { 
                         this.game.isJ = 1; 
@@ -366,22 +319,12 @@
             }, { passive: true });
 
             window.addEventListener('keydown', e => {
-                if (e.key === 'Escape') {
-                    this.game.showMainMenu();
-                    return;
-                }
-                if (this.game.gO && (e.key === ' ' || e.key === 'Spacebar')) {
-                    this.game.restart();
-                    return;
-                }
+                if (e.key === 'Escape') { this.game.showMainMenu(); return; }
+                if (this.game.gO && (e.key === ' ' || e.key === 'Spacebar')) { this.game.restart(); return; }
                 if (this.game.gO || this.game.inM) return;
 
-                if (e.key === 'ArrowLeft' && this.game.cL > 0) {
-                    this.game.cL--;
-                }
-                if (e.key === 'ArrowRight' && this.game.cL < 2) {
-                    this.game.cL++;
-                }
+                if (e.key === 'ArrowLeft' && this.game.cL > 0) this.game.cL--;
+                if (e.key === 'ArrowRight' && this.game.cL < 2) this.game.cL++;
                 if ((e.key === ' ' || e.key === 'ArrowUp') && !this.game.isJ) {
                     this.game.isJ = 1;
                     this.game.jV = 0.17;
@@ -390,17 +333,12 @@
         }
     }
 
-    /**
-     * Lightweight WebGL Custom Graphics Renderer Engine
-     */
     class WebGLRenderer {
         constructor(canvas) {
             this.c = canvas;
             this.gl = canvas.getContext('webgl', { antialias: false, depth: true });
             this.shakeTimer = 0;
-            if (!this.gl) {
-                alert('WebGL is not supported on your device or browser.');
-            }
+            if (!this.gl) alert('WebGL not supported.');
             this.initShaders();
             this.initBuffers();
         }
@@ -429,8 +367,7 @@
                     vec3 emissive = c.rgb * (0.4 + h * 0.6) * uGlow;
                     vec3 fogColor = vec3(0.02, 0.01, 0.05);
                     float fogFactor = clamp((35.0 - vDepth) / (35.0 - 5.0), 0.0, 1.0);
-                    vec3 finalColor = mix(fogColor, emissive, fogFactor);
-                    gl_FragColor = vec4(finalColor, c.a);
+                    gl_FragColor = vec4(mix(fogColor, emissive, fogFactor), c.a);
                 }
             `;
             let v = gl.createShader(gl.VERTEX_SHADER);
@@ -439,10 +376,8 @@
             gl.shaderSource(f, fCode); gl.compileShader(f);
             
             this.P = gl.createProgram();
-            gl.attachShader(this.P, v);
-            gl.attachShader(this.P, f);
-            gl.linkProgram(this.P);
-            gl.useProgram(this.P);
+            gl.attachShader(this.P, v); gl.attachShader(this.P, f);
+            gl.linkProgram(this.P); gl.useProgram(this.P);
 
             this.ap = gl.getAttribLocation(this.P, 'p');
             this.um = gl.getUniformLocation(this.P, 'm');
@@ -457,7 +392,6 @@
             this.iB = gl.createBuffer();
             
             const vertices = new Float32Array([
-                // Cube mesh
                 -0.4,-0.4,0.4,  0.4,-0.4,0.4,  0.4,0.4,0.4, -0.4,0.4,0.4,
                 -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4, 0.4,-0.4,-0.4,
                 -0.4,0.4,-0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,0.4,-0.4,
@@ -465,7 +399,6 @@
                 -0.4,-0.4,0.4,  -0.4,0.4,0.4,  0.4,0.4,0.4,  0.4,-0.4,0.4,
                 -0.4,-0.4,-0.4, -0.4,0.4,-0.4, 0.4,0.4,-0.4,  0.4,-0.4,-0.4,
 
-                // Diamond/Coin mesh
                  0.0,  0.4,  0.0,
                 -0.3,  0.0,  0.3,
                  0.3,  0.0,  0.3,
@@ -490,7 +423,6 @@
         mat(x, y, z, rY = 0, sY = 1, tiltZ = 0) {
             let syM = Math.sin(rY), cY = Math.cos(rY);
             let cZ = Math.cos(tiltZ), sZ = Math.sin(tiltZ);
-            
             return new Float32Array([
                 cY * cZ,        sZ,             -syM,           0,
                 syM * .47 - sZ, .88 * sY * cZ,  cY * .47,       0,
@@ -531,9 +463,6 @@
         }
     }
 
-    /**
-     * Main Core Gameplay Loop and State Manager
-     */
     class CyberRunGame {
         constructor() {
             this.canvas = document.getElementById('canvas');
@@ -584,11 +513,7 @@
                 musicBtn.style.textShadow = this.audio.isMuted ? 'none' : '0 0 8px #0ff';
             };
             updateMusicBtn();
-            
-            musicBtn.onclick = () => {
-                this.audio.toggleMute();
-                updateMusicBtn();
-            };
+            musicBtn.onclick = () => { this.audio.toggleMute(); updateMusicBtn(); };
 
             document.getElementById('btn-play').onclick = () => {
                 this.audio.init();
@@ -610,7 +535,6 @@
                 }
             };
 
-            // Reset progress handler with code 6700
             document.getElementById('btn-reset').onclick = () => {
                 let code = prompt("Enter security code (6700) to wipe all progress:");
                 if (code === "6700") {
@@ -766,13 +690,13 @@
 
             const gl = this.renderer.gl;
 
-            // Render Player Avatar Block
+            // Player Avatar
             gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
             gl.uniform4fv(this.renderer.uc, this.boostTimer > 0 ? [0, 1, 0.4, 1] : [0, 1, 1, 1]);
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Render and process Coins (Height fixed at Y = -0.2)
+            // Coins (Height: Y = -0.2)
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
@@ -791,10 +715,7 @@
                     continue;
                 }
 
-                if (o.z > 1) {
-                    this.coins.splice(i, 1);
-                    continue;
-                }
+                if (o.z > 1) { this.coins.splice(i, 1); continue; }
 
                 gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(o.x, -0.2, o.z));
                 gl.uniform4fv(this.renderer.uc, [1, 0.85, 0, 1]);
@@ -802,31 +723,22 @@
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
             }
 
-            // Render and process Collectible Powerup Items
+            // Power-ups
             for (let i = this.items.length - 1; i >= 0; i--) {
                 let it = this.items[i];
                 it.z += dynamicSpd;
 
                 if (Math.abs(it.x - this.pX) < 0.6 && it.z > -6.6 && it.z < -5.4) {
-                    if (it.t === 'b') {
-                        this.boostTimer = 180;
-                        this.slowTimer = 0;
-                    } else if (it.t === 's') {
-                        this.slowTimer = 180;
-                        this.boostTimer = 0;
-                    } else if (it.t === 'm') {
-                        this.magnetTimer = this.magnetUpgraded ? 420 : 300;
-                    }
+                    if (it.t === 'b') { this.boostTimer = 180; this.slowTimer = 0; }
+                    else if (it.t === 's') { this.slowTimer = 180; this.boostTimer = 0; }
+                    else if (it.t === 'm') { this.magnetTimer = this.magnetUpgraded ? 420 : 300; }
                     this.input.vibrate(80);
                     this.items.splice(i, 1);
                     this.uUI();
                     continue;
                 }
 
-                if (it.z > 1) {
-                    this.items.splice(i, 1);
-                    continue;
-                }
+                if (it.z > 1) { this.items.splice(i, 1); continue; }
 
                 gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(it.x, -0.2, it.z));
                 gl.uniform4fv(this.renderer.uc, it.t === 'b' ? [0, 1, 0.2, 1] : (it.t === 's' ? [0.9, 0, 0.9, 1] : [0, 0.8, 1, 1]));
@@ -834,7 +746,7 @@
                 gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 48);
             }
 
-            // Render and process Obstacles / Hazards
+            // Obstacles
             for (let i = this.obs.length - 1; i >= 0; i--) {
                 let o = this.obs[i];
                 o.z += dynamicSpd;
@@ -879,7 +791,6 @@
         }
     }
 
-    // Initialize the game instance
     window.game = new CyberRunGame();
     </script>
 </body>
