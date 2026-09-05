@@ -154,7 +154,7 @@
         <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
             <button id="btn-market" class="neon-btn purple">MARKETPLACE</button>
-            <button id="btn-main-reset" class="neon-btn danger">RESET PROGRESS (6700)</button>
+            <button id="btn-main-reset" class="neon-btn danger">RESET PROGRESS</button>
         </div>
     </div>
 
@@ -182,7 +182,7 @@
     </div>
 
     <script>
-    console.log("CYBER RUN - FINAL RESET FIX LOADED");
+    console.log("CYBER RUN - CLEAN RESET FIX LOADED");
 
     const SafeStorage = {
         getItem(key) {
@@ -540,7 +540,7 @@
             };
 
             document.getElementById('btn-main-reset').onclick = () => {
-                let code = prompt("Enter security code (6700) to wipe all progress:");
+                let code = prompt("Enter security code to wipe all progress:");
                 if (code === "6700") {
                     SafeStorage.removeItem('cyber_credits');
                     SafeStorage.removeItem('cyber_high_score');
