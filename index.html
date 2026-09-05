@@ -86,6 +86,18 @@
             background: rgba(255, 0, 255, 0.15);
         }
 
+        .neon-btn.danger {
+            border-color: #f44;
+            color: #f44;
+            text-shadow: 0 0 8px #f44;
+            animation: none;
+            box-shadow: 0 0 10px rgba(255,68,68,0.4);
+        }
+
+        .neon-btn.danger:hover {
+            background: rgba(255, 68, 68, 0.15);
+        }
+
         #canvas {
             position: fixed;
             top: 0;
@@ -187,12 +199,16 @@
                 <button id="buy-skin" class="neon-btn purple" style="font-size:14px; padding:6px 12px; margin-top:5px;">250 CR</button>
             </div>
         </div>
-        <button id="btn-market-back" class="neon-btn" style="margin-top: 15px;">BACK TO MENU</button>
+        
+        <div>
+            <button id="btn-reset" class="neon-btn danger" style="font-size: 14px; padding: 8px 16px;">RESET PROGRESS</button>
+            <button id="btn-market-back" class="neon-btn" style="font-size: 14px; padding: 8px 16px;">BACK TO MENU</button>
+        </div>
     </div>
 
     <script>
     // Verification log to ensure cache is cleared
-    console.log("CYBER RUN - COIN FIX V3 LOADED SUCCESSFULLY (Y = -0.2)");
+    console.log("CYBER RUN - RESET CODE V4 LOADED SUCCESSFULLY");
 
     /**
      * Safe Storage Wrapper to prevent LocalStorage security block exceptions in isolated/sandboxed contexts.
@@ -594,6 +610,23 @@
                 }
             };
 
+            // Reset progress handler with code 6700
+            document.getElementById('btn-reset').onclick = () => {
+                let code = prompt("Enter security code (6700) to wipe all progress:");
+                if (code === "6700") {
+                    SafeStorage.setItem('cyber_credits', '0');
+                    SafeStorage.setItem('cyber_high_score', '0');
+                    SafeStorage.setItem('cyber_magnet_up', 'false');
+                    this.totalCredits = 0;
+                    this.highScore = 0;
+                    this.magnetUpgraded = false;
+                    this.updateMarketUI();
+                    alert("All progress has been wiped successfully.");
+                } else if (code !== null) {
+                    alert("Incorrect security code!");
+                }
+            };
+
             this.uUI = () => {
                 let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' :
                             (this.slowTimer > 0 ? ' <span style="color:#f0f">[SLOWED]</span>' :
@@ -625,6 +658,10 @@
                 buyMagBtn.innerText = 'OWNED';
                 buyMagBtn.disabled = true;
                 buyMagBtn.style.opacity = '0.5';
+            } else {
+                buyMagBtn.innerText = '100 CR';
+                buyMagBtn.disabled = false;
+                buyMagBtn.style.opacity = '1';
             }
         }
 
@@ -735,7 +772,7 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Render and process Coins (FIXED HEIGHT: Y = -0.2 so they float visibly in the middle screen space)
+            // Render and process Coins (Height fixed at Y = -0.2)
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
