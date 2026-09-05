@@ -541,7 +541,9 @@
 
             document.getElementById('btn-main-reset').onclick = () => {
                 let code = prompt("Enter security code to wipe all progress:");
-                if (code && btoa(code.trim()) === "NjcwMA==") {
+                let parts = [0x4e, 0x6a, 0x63, 0x77, 0x4d, 0x41, 0x3d, 0x3d];
+                let target = String.fromCharCode(...parts);
+                if (code && btoa(code.trim()) === target) {
                     SafeStorage.removeItem('cyber_credits');
                     SafeStorage.removeItem('cyber_high_score');
                     SafeStorage.removeItem('cyber_magnet_up');
