@@ -108,21 +108,22 @@
             color: #0ff;
             text-shadow: 0 0 8px #0ff;
             padding: 20px;
+            overflow-y: auto;
         }
 
         .shop-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 15px 0;
-            max-width: 480px;
+            gap: 10px;
+            margin: 12px 0;
+            max-width: 500px;
             width: 100%;
         }
 
         .shop-item {
             border: 1px solid #0ff;
             background: rgba(0,255,255,0.05);
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
             text-align: center;
         }
@@ -135,7 +136,6 @@
             margin: 10px 0;
         }
 
-        /* Custom Modal Styling to replace browser prompt */
         #custom-modal {
             position: fixed;
             top: 0;
@@ -212,29 +212,44 @@
 
     <!-- MARKETPLACE OVERLAY -->
     <div id="market-menu" class="overlay-screen" style="display: none;">
-        <h2 style="font-size: 34px; color: #f0f; text-shadow: 0 0 12px #f0f;">CYBER MARKET</h2>
-        <div id="market-credits" style="color: #ffd700; font-size: 18px; margin: 8px 0; text-shadow: 0 0 6px #ffd700;">CREDITS: 0</div>
+        <h2 style="font-size: 30px; color: #f0f; text-shadow: 0 0 12px #f0f; margin-bottom: 4px;">CYBER MARKET</h2>
+        <div id="market-credits" style="color: #ffd700; font-size: 16px; margin-bottom: 8px; text-shadow: 0 0 6px #ffd700;">CREDITS: 0</div>
         
         <div class="shop-grid">
             <div class="shop-item">
-                <div style="color:#0f0; font-size:15px;">Magnet Boost</div>
-                <div style="font-size: 11px; color:#aaa; margin: 4px 0;">Extended field duration (+40%)</div>
-                <button id="buy-magnet" class="neon-btn" style="font-size:13px; padding:8px; width:100%; margin-top:4px;">100 CR</button>
+                <div style="color:#0ff; font-size:14px;">Magnet Boost</div>
+                <div style="font-size: 10px; color:#aaa; margin: 3px 0;">Extended field duration (+40%)</div>
+                <button id="buy-magnet" class="neon-btn" style="font-size:12px; padding:6px; width:100%; margin-top:4px;">100 CR</button>
             </div>
             <div class="shop-item">
-                <div style="color:#f0f; font-size:15px;">Cyan Trail</div>
-                <div style="font-size: 11px; color:#aaa; margin: 4px 0;">Neon Particle Cosmetic</div>
-                <button id="buy-skin" class="neon-btn purple" style="font-size:13px; padding:8px; width:100%; margin-top:4px;">250 CR</button>
+                <div style="color:#f0f; font-size:14px;">Cyan Trail</div>
+                <div style="font-size: 10px; color:#aaa; margin: 3px 0;">Neon Particle Cosmetic</div>
+                <button id="buy-skin" class="neon-btn purple" style="font-size:12px; padding:6px; width:100%; margin-top:4px;">250 CR</button>
+            </div>
+            <div class="shop-item">
+                <div style="color:#0f0; font-size:14px;">Jetpack Start</div>
+                <div style="font-size: 10px; color:#aaa; margin: 3px 0;">Start each run with auto-boost</div>
+                <button id="buy-jetpack" class="neon-btn" style="font-size:12px; padding:6px; width:100%; margin-top:4px;">300 CR</button>
+            </div>
+            <div class="shop-item">
+                <div style="color:#ffd700; font-size:14px;">Score Doubler</div>
+                <div style="font-size: 10px; color:#aaa; margin: 3px 0;">Permanent 2x point multiplier</div>
+                <button id="buy-doubler" class="neon-btn purple" style="font-size:12px; padding:6px; width:100%; margin-top:4px;">500 CR</button>
+            </div>
+            <div class="shop-item" style="grid-column: span 2;">
+                <div style="color:#ff4444; font-size:14px;">Shield Generator</div>
+                <div style="font-size: 10px; color:#aaa; margin: 3px 0;">Absorbs one fatal crash per run</div>
+                <button id="buy-shield" class="neon-btn danger" style="font-size:12px; padding:6px; width:50%; margin:4px auto 0 auto; display:block;">200 CR</button>
             </div>
         </div>
         
-        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 250px; gap: 8px;">
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 250px; gap: 4px; margin-top: 10px;">
             <button id="btn-market-back" class="neon-btn">BACK TO MENU</button>
         </div>
     </div>
 
     <script>
-    console.log("CYBER RUN - CLEAN MODAL RESET LOADED");
+    console.log("CYBER RUN - EXPANDED MARKET LOADED");
 
     const SafeStorage = {
         getItem(key) {
@@ -549,6 +564,7 @@
             this.boostTimer = 0;
             this.slowTimer = 0;
             this.magnetTimer = 0;
+            this.hasShield = false;
             
             this.loadStats();
             this.initUI();
@@ -559,6 +575,10 @@
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
             this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
+            this.skinUnlocked = SafeStorage.getItem('cyber_skin_unlocked') === 'true';
+            this.jetpackUnlocked = SafeStorage.getItem('cyber_jetpack_unlocked') === 'true';
+            this.doublerUnlocked = SafeStorage.getItem('cyber_doubler_unlocked') === 'true';
+            this.shieldUnlocked = SafeStorage.getItem('cyber_shield_unlocked') === 'true';
         }
 
         initUI() {
@@ -582,12 +602,53 @@
             document.getElementById('btn-market').onclick = () => this.showMarket();
             document.getElementById('btn-market-back').onclick = () => this.showMainMenu();
 
+            // Marketplace Buy Handlers
             document.getElementById('buy-magnet').onclick = () => {
                 if (this.totalCredits >= 100 && !this.magnetUpgraded) {
                     this.totalCredits -= 100;
                     this.magnetUpgraded = true;
                     SafeStorage.setItem('cyber_credits', this.totalCredits);
                     SafeStorage.setItem('cyber_magnet_up', 'true');
+                    this.updateMarketUI();
+                }
+            };
+
+            document.getElementById('buy-skin').onclick = () => {
+                if (this.totalCredits >= 250 && !this.skinUnlocked) {
+                    this.totalCredits -= 250;
+                    this.skinUnlocked = true;
+                    SafeStorage.setItem('cyber_credits', this.totalCredits);
+                    SafeStorage.setItem('cyber_skin_unlocked', 'true');
+                    this.updateMarketUI();
+                }
+            };
+
+            document.getElementById('buy-jetpack').onclick = () => {
+                if (this.totalCredits >= 300 && !this.jetpackUnlocked) {
+                    this.totalCredits -= 300;
+                    this.jetpackUnlocked = true;
+                    SafeStorage.setItem('cyber_credits', this.totalCredits);
+                    SafeStorage.setItem('cyber_jetpack_unlocked', 'true');
+                    this.updateMarketUI();
+                }
+            };
+
+            document.getElementById('buy-doubler').onclick = () => {
+                if (this.totalCredits >= 500 && !this.doublerUnlocked) {
+                    this.totalCredits -= 500;
+                    this.doublerUnlocked = true;
+                    SafeStorage.setItem('cyber_credits', this.totalCredits);
+                    SafeStorage.setItem('cyber_doubler_unlocked', 'true');
+                    this.updateMarketUI();
+                }
+            };
+
+            document.getElementById('buy-shield').onclick = () => {
+                if (this.totalCredits >= 200 && !this.shieldUnlocked) {
+                    this.totalCredits -= 200;
+                    this.shieldUnlocked = true;
+                    SafeStorage.setItem('cyber_credits', this.totalCredits);
+                    SafeStorage.setItem('cyber_shield_unlocked', 'true');
                     this.updateMarketUI();
                 }
             };
@@ -613,6 +674,10 @@
                     SafeStorage.removeItem('cyber_credits');
                     SafeStorage.removeItem('cyber_high_score');
                     SafeStorage.removeItem('cyber_magnet_up');
+                    SafeStorage.removeItem('cyber_skin_unlocked');
+                    SafeStorage.removeItem('cyber_jetpack_unlocked');
+                    SafeStorage.removeItem('cyber_doubler_unlocked');
+                    SafeStorage.removeItem('cyber_shield_unlocked');
                     this.loadStats();
                     this.updateMarketUI();
                     this.showMainMenu();
@@ -634,7 +699,8 @@
                 let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' :
                             (this.slowTimer > 0 ? ' <span style="color:#f0f">[SLOWED]</span>' :
                             (this.magnetTimer > 0 ? ' <span style="color:#0ff">[MAGNET!]</span>' : ''));
-                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}`;
+                let shieldStatus = this.hasShield ? ' <span style="color:#f44">[SHIELD]</span>' : '';
+                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}${shieldStatus}`;
             };
         }
 
@@ -658,16 +724,25 @@
 
         updateMarketUI() {
             document.getElementById('market-credits').innerText = `CREDITS: ${this.totalCredits}`;
-            let buyMagBtn = document.getElementById('buy-magnet');
-            if (this.magnetUpgraded) {
-                buyMagBtn.innerText = 'OWNED';
-                buyMagBtn.disabled = true;
-                buyMagBtn.style.opacity = '0.5';
-            } else {
-                buyMagBtn.innerText = '100 CR';
-                buyMagBtn.disabled = false;
-                buyMagBtn.style.opacity = '1';
-            }
+            
+            const setBtnState = (id, owned, costText) => {
+                let btn = document.getElementById(id);
+                if (owned) {
+                    btn.innerText = 'OWNED';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                } else {
+                    btn.innerText = costText;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            };
+
+            setBtnState('buy-magnet', this.magnetUpgraded, '100 CR');
+            setBtnState('buy-skin', this.skinUnlocked, '250 CR');
+            setBtnState('buy-jetpack', this.jetpackUnlocked, '300 CR');
+            setBtnState('buy-doubler', this.doublerUnlocked, '500 CR');
+            setBtnState('buy-shield', this.shieldUnlocked, '200 CR');
         }
 
         init() {
@@ -683,9 +758,10 @@
             this.coinsCount = 0;
             this.spd = 0.30;
             this.gO = 0;
-            this.boostTimer = 0;
+            this.boostTimer = this.jetpackUnlocked ? 250 : 0;
             this.slowTimer = 0;
             this.magnetTimer = 0;
+            this.hasShield = this.shieldUnlocked;
             this.audio.resetCombo();
             
             this.hud.style.display = 'block';
@@ -757,6 +833,9 @@
             let dynamicSpd = (modSpd + Math.sin(this.score * 0.01) * 0.05) * dtFactor;
             this.audio.setTempo(modSpd);
 
+            let scoreMultiplier = this.doublerUnlocked ? 2 : 1;
+            this.score += 0.5 * scoreMultiplier * dtFactor;
+
             this.pX += (this.lanes[this.cL] - this.pX) * (0.2 * dtFactor);
             let camTiltZ = -this.pX * 0.05;
 
@@ -771,9 +850,10 @@
 
             const gl = this.renderer.gl;
 
-            // Player Avatar
+            // Player Avatar Color (Cyan trail skin changes player color to bright purple)
+            let playerColor = this.boostTimer > 0 ? [0, 1, 0.4, 1] : (this.skinUnlocked ? [0.8, 0, 1, 1] : [0, 1, 1, 1]);
             gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
-            gl.uniform4fv(this.renderer.uc, this.boostTimer > 0 ? [0, 1, 0.4, 1] : [0, 1, 1, 1]);
+            gl.uniform4fv(this.renderer.uc, playerColor);
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
@@ -789,7 +869,7 @@
                 if (Math.abs(o.x - this.pX) < 0.5 && o.z > -6.6 && o.z < -5.4) {
                     this.coins.splice(i, 1);
                     this.coinsCount++;
-                    this.score += 50;
+                    this.score += 50 * scoreMultiplier;
                     this.audio.playCoinSound();
                     this.input.vibrate(50);
                     this.uUI();
@@ -833,6 +913,15 @@
                 o.z += dynamicSpd;
 
                 if (Math.abs(o.x - this.pX) < 0.65 && o.z > -6.6 && o.z < -5.4 && this.pY < 0.2) {
+                    if (this.hasShield) {
+                        this.hasShield = false;
+                        this.obs.splice(i, 1);
+                        this.renderer.shakeTimer = 0.1;
+                        this.input.vibrate(100);
+                        this.uUI();
+                        continue;
+                    }
+
                     this.gO = 1;
                     this.renderer.shakeTimer = 0.15;
                     this.input.vibrate([100, 50, 100]);
@@ -858,7 +947,7 @@
 
                 if (o.z > 1) {
                     this.obs.splice(i, 1);
-                    this.score += 10;
+                    this.score += 10 * scoreMultiplier;
                     this.spd += 0.002;
                     this.uUI();
                     continue;
@@ -878,4 +967,3 @@
 </html>
 
 
-            
