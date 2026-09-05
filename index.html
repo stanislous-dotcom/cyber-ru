@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cyber Run 3D</title>
-    <!-- Manifest link for PWA / PWABuilder integration -->
-    <link rel="manifest" href="manifest.json">
     <style>
         * {
             box-sizing: border-box;
@@ -40,15 +38,17 @@
             border-radius: 6px;
             background: #000;
             color: #0ff;
-            padding: 10px 20px;
+            padding: 12px 20px;
             cursor: pointer;
             font-size: 16px;
             font-weight: 900;
             animation: neonPulse 2s infinite;
             transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
             text-shadow: 0 0 8px #0ff;
-            margin: 6px;
+            margin: 6px 0;
             -webkit-tap-highlight-color: transparent;
+            width: 100%;
+            max-width: 250px;
         }
 
         .neon-btn:hover { background: rgba(0, 255, 255, 0.15); }
@@ -68,9 +68,9 @@
             color: #f44;
             text-shadow: 0 0 8px #f44;
             animation: none;
-            box-shadow: 0 0 10px rgba(255,68,68,0.4);
+            box-shadow: 0 0 12px rgba(255,68,68,0.6);
         }
-        .neon-btn.danger:hover { background: rgba(255, 68, 68, 0.15); }
+        .neon-btn.danger:hover { background: rgba(255, 68, 68, 0.2); }
 
         #canvas {
             position: fixed;
@@ -107,7 +107,6 @@
             background: radial-gradient(circle, rgba(15,10,35,0.95) 0%, rgba(5,5,15,0.98) 100%);
             color: #0ff;
             text-shadow: 0 0 8px #0ff;
-            overflow-y: auto;
             padding: 20px;
         }
 
@@ -142,7 +141,7 @@
     <div id="hud"></div>
 
     <!-- GLOBAL AUDIO TOGGLE BUTTON -->
-    <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; animation: none;">🎵 ON</button>
+    <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; width: auto; animation: none;">🎵 ON</button>
 
     <!-- MAIN MENU OVERLAY -->
     <div id="main-menu" class="overlay-screen">
@@ -152,10 +151,10 @@
         <div style="font-size: 13px; color: #888; margin-bottom: 20px; text-shadow: none; text-align: center; max-width: 80%;">
             Swipe Left/Right to change lanes • Swipe Up to Jump<br>Use Arrow Keys / Spacebar on desktop
         </div>
-        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
             <button id="btn-market" class="neon-btn purple">MARKETPLACE</button>
-            <button id="btn-main-reset" class="neon-btn danger">RESET</button>
+            <button id="btn-main-reset" class="neon-btn danger">RESET PROGRESS (6700)</button>
         </div>
     </div>
 
@@ -168,33 +167,35 @@
             <div class="shop-item">
                 <div style="color:#0f0; font-size:15px;">Magnet Boost</div>
                 <div style="font-size: 11px; color:#aaa; margin: 4px 0;">Extended field duration (+40%)</div>
-                <button id="buy-magnet" class="neon-btn" style="font-size:13px; padding:5px 10px; margin-top:4px;">100 CR</button>
+                <button id="buy-magnet" class="neon-btn" style="font-size:13px; padding:8px; width:100%; margin-top:4px;">100 CR</button>
             </div>
             <div class="shop-item">
                 <div style="color:#f0f; font-size:15px;">Cyan Trail</div>
                 <div style="font-size: 11px; color:#aaa; margin: 4px 0;">Neon Particle Cosmetic</div>
-                <button id="buy-skin" class="neon-btn purple" style="font-size:13px; padding:5px 10px; margin-top:4px;">250 CR</button>
+                <button id="buy-skin" class="neon-btn purple" style="font-size:13px; padding:8px; width:100%; margin-top:4px;">250 CR</button>
             </div>
         </div>
         
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-            <button id="btn-reset" class="neon-btn danger">RESET PROGRESS</button>
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 250px; gap: 8px;">
             <button id="btn-market-back" class="neon-btn">BACK TO MENU</button>
         </div>
     </div>
 
     <script>
-    console.log("CYBER RUN - MAIN MENU RESET V6 LOADED");
+    console.log("CYBER RUN - FINAL RESET FIX LOADED");
 
     const SafeStorage = {
-        data: {},
         getItem(key) {
             try { return localStorage.getItem(key); }
-            catch(e) { return this.data[key] || null; }
+            catch(e) { return null; }
         },
         setItem(key, val) {
             try { localStorage.setItem(key, val); }
-            catch(e) { this.data[key] = String(val); }
+            catch(e) {}
+        },
+        removeItem(key) {
+            try { localStorage.removeItem(key); }
+            catch(e) {}
         }
     };
 
@@ -496,13 +497,15 @@
             this.slowTimer = 0;
             this.magnetTimer = 0;
             
+            this.loadStats();
+            this.initUI();
+            this.showMainMenu();
+        }
+
+        loadStats() {
             this.totalCredits = parseInt(SafeStorage.getItem('cyber_credits') || '0');
             this.highScore = parseInt(SafeStorage.getItem('cyber_high_score') || '0');
             this.magnetUpgraded = SafeStorage.getItem('cyber_magnet_up') === 'true';
-            this.lastTime = 0;
-            
-            this.initUI();
-            this.showMainMenu();
         }
 
         initUI() {
@@ -536,15 +539,13 @@
                 }
             };
 
-            const triggerReset = () => {
+            document.getElementById('btn-main-reset').onclick = () => {
                 let code = prompt("Enter security code (6700) to wipe all progress:");
                 if (code === "6700") {
-                    SafeStorage.setItem('cyber_credits', '0');
-                    SafeStorage.setItem('cyber_high_score', '0');
-                    SafeStorage.setItem('cyber_magnet_up', 'false');
-                    this.totalCredits = 0;
-                    this.highScore = 0;
-                    this.magnetUpgraded = false;
+                    SafeStorage.removeItem('cyber_credits');
+                    SafeStorage.removeItem('cyber_high_score');
+                    SafeStorage.removeItem('cyber_magnet_up');
+                    this.loadStats();
                     this.updateMarketUI();
                     this.showMainMenu();
                     alert("All progress has been wiped successfully.");
@@ -552,9 +553,6 @@
                     alert("Incorrect security code!");
                 }
             };
-
-            document.getElementById('btn-reset').onclick = triggerReset;
-            document.getElementById('btn-main-reset').onclick = triggerReset;
 
             this.uUI = () => {
                 let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' :
@@ -565,6 +563,7 @@
         }
 
         showMainMenu() {
+            this.loadStats();
             this.inM = 1;
             this.gO = 0;
             this.mainMenu.style.display = 'flex';
@@ -575,6 +574,7 @@
         }
 
         showMarket() {
+            this.loadStats();
             this.mainMenu.style.display = 'none';
             this.marketMenu.style.display = 'flex';
             this.updateMarketUI();
@@ -701,7 +701,7 @@
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
 
-            // Coins (Height: Y = -0.2)
+            // Coins
             for (let i = this.coins.length - 1; i >= 0; i--) {
                 let o = this.coins[i];
                 o.z += dynamicSpd;
@@ -774,8 +774,8 @@
                     this.hud.innerHTML = `GAME OVER<br>` + 
                          (newBest ? `<span class="new-best-anim">NEW BEST!</span><br>` : '') + 
                          `<span style="font-size:18px;color:#888;">SCORE: ${Math.floor(this.score)}</span><br>` + 
-                         `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px;">RETRY</button>` + 
-                         `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px;">MENU</button>`;
+                         `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px; width:auto; padding:10px 20px;">RETRY</button>` + 
+                         `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px; width:auto; padding:10px 20px;">MENU</button>`;
                     this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#f14;font-size:44px;text-align:center;pointer-events:auto;';
                     return;
                 }
@@ -800,6 +800,5 @@
     </script>
 </body>
 </html>
-
 
 
