@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Run 3D - Bot Battle Edition</title>
+    <title>Cyber Run 3D - Bot Battle Arena</title>
     <style>
         * {
             box-sizing: border-box;
@@ -92,14 +92,45 @@
 
         #hud {
             position: fixed;
-            top: 25px;
-            left: 25px;
-            font-size: 20px;
+            top: 20px;
+            left: 20px;
+            font-size: 16px;
             color: #0ff;
             text-shadow: 0 0 8px #0ff;
             z-index: 20;
             display: none;
             pointer-events: none;
+        }
+
+        #bot-leaderboard {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(5, 5, 20, 0.85);
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            color: #0f0;
+            text-shadow: 0 0 6px #0f0;
+            z-index: 20;
+            display: none;
+            min-width: 180px;
+            box-shadow: 0 0 15px rgba(0,255,0,0.3);
+        }
+
+        .lb-title {
+            font-size: 14px;
+            border-bottom: 1px solid #0f0;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .lb-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
         }
 
         .overlay-screen {
@@ -220,6 +251,10 @@
 <body>
     <canvas id="canvas"></canvas>
     <div id="hud"></div>
+    <div id="bot-leaderboard">
+        <div class="lb-title">RACE RANKINGS</div>
+        <div id="lb-content"></div>
+    </div>
 
     <div id="custom-modal">
         <div class="modal-box">
@@ -326,7 +361,7 @@
     </div>
 
     <script>
-    console.log("CYBER RUN - BOT BATTLE EDITION LOADED");
+    console.log("CYBER RUN - FULL BOT ARENA ACTIVE");
 
     const SafeStorage = {
         getItem(key) {
@@ -614,6 +649,7 @@
         constructor() {
             this.canvas = document.getElementById('canvas');
             this.hud = document.getElementById('hud');
+            this.lbBox = document.getElementById('bot-leaderboard');
             this.mainMenu = document.getElementById('main-menu');
             this.botsMenu = document.getElementById('bots-config-menu');
             this.marketMenu = document.getElementById('market-menu');
@@ -772,8 +808,7 @@
                             (this.magnetTimer > 0 ? ' <span style="color:#0ff">[MAGNET!]</span>' : ''));
                 let shieldStatus = this.hasShield ? ' <span style="color:#f44">[SHIELD]</span>' : '';
                 let lifeStatus = this.hasExtraLife ? ' <span style="color:#0ff">[LIFE+]</span>' : '';
-                let botStatus = this.isBotMode ? ` | BOTS ALIVE: ${this.bots.filter(b=>!b.dead).length}/${this.bots.length}` : '';
-                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}${shieldStatus}${lifeStatus}${botStatus}`;
+                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}${shieldStatus}${lifeStatus}`;
             };
         }
 
@@ -785,6 +820,7 @@
             this.botsMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
             this.hud.style.display = 'none';
+            this.lbBox.style.display = 'none';
             document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
             document.getElementById('menu-credits').innerText = `TOTAL CREDITS: ${this.totalCredits}`;
         }
@@ -848,18 +884,20 @@
                     this.bots.push({
                         name: botNames[i] || (`Bot_${i+1}`),
                         lane: Math.floor(Math.random() * 3),
-                        x: 0,
+                        x: this.lanes[Math.floor(Math.random() * 3)],
                         y: -0.4,
-                        z: -5 - (i * 1.5),
+                        z: -12 - (i * 2.5),
                         dead: false,
-                        score: 0,
-                        jumpTimer: 0
+                        score: Math.floor(Math.random() * 20)
                     });
                 }
+                this.lbBox.style.display = 'block';
+            } else {
+                this.lbBox.style.display = 'none';
             }
             
             this.hud.style.display = 'block';
-            this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
+            this.hud.style.cssText = 'position:fixed;top:20px;left:20px;font-size:16px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
             this.mainMenu.style.display = 'none';
             this.botsMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
@@ -954,20 +992,22 @@
 
             // Render and Update Bots
             if (this.isBotMode) {
-                let reactionChance = 0.02;
-                if (this.botConfigDiff === 'easy') reactionChance = 0.01;
-                if (this.botConfigDiff === 'hard') reactionChance = 0.05;
-                if (this.botConfigDiff === 'veryhard') reactionChance = 0.10;
-                if (this.botConfigDiff === 'demon') reactionChance = 0.25;
+                let reactionRate = 0.03;
+                let crashChance = 0.5;
+                if (this.botConfigDiff === 'easy') { reactionRate = 0.01; crashChance = 0.85; }
+                else if (this.botConfigDiff === 'mid') { reactionRate = 0.04; crashChance = 0.5; }
+                else if (this.botConfigDiff === 'hard') { reactionRate = 0.09; crashChance = 0.25; }
+                else if (this.botConfigDiff === 'veryhard') { reactionRate = 0.18; crashChance = 0.1; }
+                else if (this.botConfigDiff === 'demon') { reactionRate = 0.40; crashChance = 0.02; }
 
                 for (let b of this.bots) {
                     if (b.dead) continue;
-                    b.score += 0.5 * dtFactor;
+                    b.score += 0.4 * dtFactor;
 
-                    // Bot AI obstacle avoidance
+                    // Bot obstacle avoidance simulation
                     for (let o of this.obs) {
-                        if (Math.abs(o.z - (-6)) < 8 && Math.abs(o.x - this.lanes[b.lane]) < 0.5) {
-                            if (Math.random() < reactionChance) {
+                        if (o.z > -16 && o.z < -4 && Math.abs(o.x - this.lanes[b.lane]) < 0.5) {
+                            if (Math.random() < reactionRate) {
                                 let safeLanes = [0, 1, 2].filter(l => l !== b.lane);
                                 b.lane = safeLanes[Math.floor(Math.random() * safeLanes.length)];
                             }
@@ -976,30 +1016,43 @@
 
                     b.x += (this.lanes[b.lane] - b.x) * (0.25 * dtFactor);
 
-                    // Bot collision check with obstacles
+                    // Bot collision detection
                     for (let o of this.obs) {
                         if (Math.abs(o.x - b.x) < 0.65 && o.z > -6.6 && o.z < -5.4) {
-                            if (Math.random() > reactionChance * 3) {
+                            if (Math.random() < crashChance) {
                                 b.dead = true;
                             }
                         }
                     }
 
-                    gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(b.x, -0.4, -6.2));
-                    gl.uniform4fv(this.renderer.uc, [1, 0.5, 0, 1]); // Orange bots
-                    gl.uniform1f(this.renderer.uGlow, 1.2);
+                    gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(b.x, -0.4, b.z));
+                    gl.uniform4fv(this.renderer.uc, [1, 0.4, 0, 1]); // Glowing Orange Bots
+                    gl.uniform1f(this.renderer.uGlow, 1.4);
                     gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
                 }
 
-                // Check Win Condition in Bot Mode (All bots dead)
+                // Update Rankings Box
+                let allRacers = [{name: 'YOU', score: this.score, dead: false}].concat(this.bots);
+                allRacers.sort((a, b) => b.score - a.score);
+                let lbHTML = '';
+                for (let i = 0; i < Math.min(6, allRacers.length); i++) {
+                    let r = allRacers[i];
+                    let nameColor = r.name === 'YOU' ? '#0ff' : (r.dead ? '#555' : '#0f0');
+                    let statusTxt = r.dead ? ' [DEAD]' : '';
+                    lbHTML += `<div class="lb-row"><span style="color:${nameColor}">${i+1}. ${r.name}</span><span>${Math.floor(r.score)}${statusTxt}</span></div>`;
+                }
+                document.getElementById('lb-content').innerHTML = lbHTML;
+
+                // Check Win Condition (All bots crashed)
                 let aliveBots = this.bots.filter(b => !b.dead);
                 if (aliveBots.length === 0) {
                     this.gO = 1;
-                    this.totalCredits += this.coinsCount + 100; // Bonus credits for winning bot battle
+                    this.lbBox.style.display = 'none';
+                    this.totalCredits += this.coinsCount + 150;
                     SafeStorage.setItem('cyber_credits', this.totalCredits);
 
                     this.hud.innerHTML = `VICTORY!<br>` +
-                         `<span style="font-size:18px;color:#0f0;">YOU DEFEATED ALL BOTS! (+100 BONUS CR)</span><br>` +
+                         `<span style="font-size:18px;color:#0f0;">YOU DEFEATED ALL BOTS! (+150 BONUS CR)</span><br>` +
                          `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px; width:auto; padding:10px 20px;">PLAY AGAIN</button>` + 
                          `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px; width:auto; padding:10px 20px;">MENU</button>`;
                     this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#0f0;font-size:38px;text-align:center;pointer-events:auto;';
@@ -1084,6 +1137,7 @@
                     }
 
                     this.gO = 1;
+                    this.lbBox.style.display = 'none';
                     this.renderer.shakeTimer = 0.15;
                     this.input.vibrate([100, 50, 100]);
 
@@ -1126,6 +1180,5 @@
     </script>
 </body>
 </html>
-
 
 
