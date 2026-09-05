@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Run 3D</title>
+    <title>Cyber Run 3D - Bot Battle Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -62,6 +62,15 @@
             box-shadow: 0 0 10px rgba(255,0,255,0.4);
         }
         .neon-btn.purple:hover { background: rgba(255, 0, 255, 0.15); }
+
+        .neon-btn.green {
+            border-color: #0f0;
+            color: #0f0;
+            text-shadow: 0 0 8px #0f0;
+            animation: none;
+            box-shadow: 0 0 10px rgba(0,255,0,0.4);
+        }
+        .neon-btn.green:hover { background: rgba(0, 255, 0, 0.15); }
 
         .neon-btn.danger {
             border-color: #f44;
@@ -125,6 +134,38 @@
             background: rgba(0,255,255,0.05);
             padding: 10px;
             border-radius: 8px;
+            text-align: center;
+        }
+
+        .config-box {
+            border: 2px solid #0f0;
+            background: rgba(0,255,0,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+            box-shadow: 0 0 15px rgba(0,255,0,0.3);
+            margin-bottom: 15px;
+        }
+
+        .config-label {
+            color: #0f0;
+            font-size: 15px;
+            margin: 10px 0 5px 0;
+            text-shadow: 0 0 6px #0f0;
+        }
+
+        .config-select {
+            width: 100%;
+            background: #000;
+            border: 2px solid #0f0;
+            color: #0f0;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: 900;
+            border-radius: 6px;
+            outline: none;
             text-align: center;
         }
 
@@ -202,8 +243,43 @@
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
+            <button id="btn-bots-menu" class="neon-btn green">PLAY WITH BOTS</button>
             <button id="btn-market" class="neon-btn purple">MARKETPLACE</button>
             <button id="btn-main-reset" class="neon-btn danger">RESET PROGRESS</button>
+        </div>
+    </div>
+
+    <div id="bots-config-menu" class="overlay-screen" style="display: none;">
+        <h2 style="font-size: 32px; color: #0f0; text-shadow: 0 0 12px #0f0; margin-bottom: 15px;">BOT BATTLE SETUP</h2>
+        
+        <div class="config-box">
+            <div class="config-label">NUMBER OF BOTS (1 - 10)</div>
+            <select id="bot-count-select" class="config-select">
+                <option value="1">1 Bot</option>
+                <option value="2">2 Bots</option>
+                <option value="3" selected>3 Bots</option>
+                <option value="4">4 Bots</option>
+                <option value="5">5 Bots</option>
+                <option value="6">6 Bots</option>
+                <option value="7">7 Bots</option>
+                <option value="8">8 Bots</option>
+                <option value="9">9 Bots</option>
+                <option value="10">10 Bots</option>
+            </select>
+
+            <div class="config-label" style="margin-top: 15px;">DIFFICULTY LEVEL</div>
+            <select id="bot-diff-select" class="config-select">
+                <option value="easy">Easy</option>
+                <option value="mid" selected>Mid</option>
+                <option value="hard">Hard</option>
+                <option value="veryhard">Very Hard</option>
+                <option value="demon">Demon Mode</option>
+            </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 250px; gap: 4px;">
+            <button id="btn-start-bots" class="neon-btn green">START BATTLE</button>
+            <button id="btn-bots-back" class="neon-btn">BACK TO MENU</button>
         </div>
     </div>
 
@@ -250,7 +326,7 @@
     </div>
 
     <script>
-    console.log("CYBER RUN - PERMANENT EXPANDED MARKET LOADED");
+    console.log("CYBER RUN - BOT BATTLE EDITION LOADED");
 
     const SafeStorage = {
         getItem(key) {
@@ -364,13 +440,13 @@
 
         bindEvents() {
             window.addEventListener('touchstart', e => {
-                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
                 this.touchX = e.touches[0].clientX;
                 this.touchY = e.touches[0].clientY;
             }, { passive: true });
 
             window.addEventListener('touchend', e => {
-                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+                if (e.target.id === 'btn-music' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
                 if (this.game.gO) { this.game.restart(); return; }
                 if (this.game.inM) return;
                 
@@ -389,7 +465,7 @@
             }, { passive: true });
 
             window.addEventListener('keydown', e => {
-                if (e.target.tagName === 'INPUT') return;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
                 if (e.key === 'Escape') { this.game.showMainMenu(); return; }
                 if (this.game.gO && (e.key === ' ' || e.key === 'Spacebar')) { this.game.restart(); return; }
                 if (this.game.gO || this.game.inM) return;
@@ -539,6 +615,7 @@
             this.canvas = document.getElementById('canvas');
             this.hud = document.getElementById('hud');
             this.mainMenu = document.getElementById('main-menu');
+            this.botsMenu = document.getElementById('bots-config-menu');
             this.marketMenu = document.getElementById('market-menu');
             
             this.audio = new AudioSystem();
@@ -555,12 +632,17 @@
             this.obs = [];
             this.coins = [];
             this.items = [];
+            this.bots = [];
             
             this.score = 0;
             this.coinsCount = 0;
             this.spd = 0.30;
             this.gO = 0;
             this.inM = 1;
+            
+            this.isBotMode = false;
+            this.botConfigCount = 3;
+            this.botConfigDiff = 'mid';
             
             this.boostTimer = 0;
             this.slowTimer = 0;
@@ -596,6 +678,26 @@
             musicBtn.onclick = () => { this.audio.toggleMute(); updateMusicBtn(); };
 
             document.getElementById('btn-play').onclick = () => {
+                this.isBotMode = false;
+                this.audio.init();
+                this.inM = 0;
+                this.init();
+                requestAnimationFrame(t => this.loop(t));
+            };
+
+            document.getElementById('btn-bots-menu').onclick = () => {
+                this.mainMenu.style.display = 'none';
+                this.botsMenu.style.display = 'flex';
+            };
+
+            document.getElementById('btn-bots-back').onclick = () => {
+                this.showMainMenu();
+            };
+
+            document.getElementById('btn-start-bots').onclick = () => {
+                this.isBotMode = true;
+                this.botConfigCount = parseInt(document.getElementById('bot-count-select').value);
+                this.botConfigDiff = document.getElementById('bot-diff-select').value;
                 this.audio.init();
                 this.inM = 0;
                 this.init();
@@ -605,7 +707,6 @@
             document.getElementById('btn-market').onclick = () => this.showMarket();
             document.getElementById('btn-market-back').onclick = () => this.showMainMenu();
 
-            // Permanent Marketplace Purchase Handlers
             const handlePurchase = (key, cost, storageKey) => {
                 if (this.totalCredits >= cost) {
                     this.totalCredits -= cost;
@@ -623,7 +724,6 @@
             document.getElementById('buy-shield').onclick = () => handlePurchase('shield', 200, 'cyber_shield_unlocked');
             document.getElementById('buy-extralife').onclick = () => handlePurchase('extralife', 400, 'cyber_extralife_unlocked');
 
-            // Custom Modal Logic for Reset Progress
             let modal = document.getElementById('custom-modal');
             let modalInput = document.getElementById('modal-code-input');
 
@@ -672,7 +772,8 @@
                             (this.magnetTimer > 0 ? ' <span style="color:#0ff">[MAGNET!]</span>' : ''));
                 let shieldStatus = this.hasShield ? ' <span style="color:#f44">[SHIELD]</span>' : '';
                 let lifeStatus = this.hasExtraLife ? ' <span style="color:#0ff">[LIFE+]</span>' : '';
-                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}${shieldStatus}${lifeStatus}`;
+                let botStatus = this.isBotMode ? ` | BOTS ALIVE: ${this.bots.filter(b=>!b.dead).length}/${this.bots.length}` : '';
+                this.hud.innerHTML = `SCORE: ${Math.floor(this.score)} | BEST: ${this.highScore} | CREDITS: ${this.coinsCount}${status}${shieldStatus}${lifeStatus}${botStatus}`;
             };
         }
 
@@ -681,6 +782,7 @@
             this.inM = 1;
             this.gO = 0;
             this.mainMenu.style.display = 'flex';
+            this.botsMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
             this.hud.style.display = 'none';
             document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${this.highScore}`;
@@ -690,6 +792,7 @@
         showMarket() {
             this.loadStats();
             this.mainMenu.style.display = 'none';
+            this.botsMenu.style.display = 'none';
             this.marketMenu.style.display = 'flex';
             this.updateMarketUI();
         }
@@ -727,6 +830,7 @@
             this.obs = [];
             this.coins = [];
             this.items = [];
+            this.bots = [];
             this.score = 0;
             this.coinsCount = 0;
             this.spd = 0.30;
@@ -737,10 +841,27 @@
             this.hasShield = this.shieldUnlocked;
             this.hasExtraLife = this.extralifeUnlocked;
             this.audio.resetCombo();
+
+            if (this.isBotMode) {
+                let botNames = ["CyberBot", "NeonStalker", "GlitchRunner", "VaporAI", "ZeroCool", "ByteGhost", "GridHacker", "SynthWave", "Overclock", "MatrixNode"];
+                for (let i = 0; i < this.botConfigCount; i++) {
+                    this.bots.push({
+                        name: botNames[i] || (`Bot_${i+1}`),
+                        lane: Math.floor(Math.random() * 3),
+                        x: 0,
+                        y: -0.4,
+                        z: -5 - (i * 1.5),
+                        dead: false,
+                        score: 0,
+                        jumpTimer: 0
+                    });
+                }
+            }
             
             this.hud.style.display = 'block';
             this.hud.style.cssText = 'position:fixed;top:25px;left:25px;font-size:20px;color:#0ff;text-shadow:0 0 8px #0ff;z-index:20;display:block;';
             this.mainMenu.style.display = 'none';
+            this.botsMenu.style.display = 'none';
             this.marketMenu.style.display = 'none';
             
             this.uUI();
@@ -824,12 +945,67 @@
 
             const gl = this.renderer.gl;
 
-            // Player Avatar Color
+            // Render Player
             let playerColor = this.boostTimer > 0 ? [0, 1, 0.4, 1] : (this.skinUnlocked ? [0.8, 0, 1, 1] : [0, 1, 1, 1]);
             gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(this.pX, this.pY, -6, 0, 1, camTiltZ));
             gl.uniform4fv(this.renderer.uc, playerColor);
             gl.uniform1f(this.renderer.uGlow, 1.8);
             gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+
+            // Render and Update Bots
+            if (this.isBotMode) {
+                let reactionChance = 0.02;
+                if (this.botConfigDiff === 'easy') reactionChance = 0.01;
+                if (this.botConfigDiff === 'hard') reactionChance = 0.05;
+                if (this.botConfigDiff === 'veryhard') reactionChance = 0.10;
+                if (this.botConfigDiff === 'demon') reactionChance = 0.25;
+
+                for (let b of this.bots) {
+                    if (b.dead) continue;
+                    b.score += 0.5 * dtFactor;
+
+                    // Bot AI obstacle avoidance
+                    for (let o of this.obs) {
+                        if (Math.abs(o.z - (-6)) < 8 && Math.abs(o.x - this.lanes[b.lane]) < 0.5) {
+                            if (Math.random() < reactionChance) {
+                                let safeLanes = [0, 1, 2].filter(l => l !== b.lane);
+                                b.lane = safeLanes[Math.floor(Math.random() * safeLanes.length)];
+                            }
+                        }
+                    }
+
+                    b.x += (this.lanes[b.lane] - b.x) * (0.25 * dtFactor);
+
+                    // Bot collision check with obstacles
+                    for (let o of this.obs) {
+                        if (Math.abs(o.x - b.x) < 0.65 && o.z > -6.6 && o.z < -5.4) {
+                            if (Math.random() > reactionChance * 3) {
+                                b.dead = true;
+                            }
+                        }
+                    }
+
+                    gl.uniformMatrix4fv(this.renderer.um, false, this.renderer.mat(b.x, -0.4, -6.2));
+                    gl.uniform4fv(this.renderer.uc, [1, 0.5, 0, 1]); // Orange bots
+                    gl.uniform1f(this.renderer.uGlow, 1.2);
+                    gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+                }
+
+                // Check Win Condition in Bot Mode (All bots dead)
+                let aliveBots = this.bots.filter(b => !b.dead);
+                if (aliveBots.length === 0) {
+                    this.gO = 1;
+                    this.totalCredits += this.coinsCount + 100; // Bonus credits for winning bot battle
+                    SafeStorage.setItem('cyber_credits', this.totalCredits);
+
+                    this.hud.innerHTML = `VICTORY!<br>` +
+                         `<span style="font-size:18px;color:#0f0;">YOU DEFEATED ALL BOTS! (+100 BONUS CR)</span><br>` +
+                         `<button class="neon-btn" onclick="window.game.restart()" style="margin-top:15px; width:auto; padding:10px 20px;">PLAY AGAIN</button>` + 
+                         `<button class="neon-btn purple" onclick="window.game.showMainMenu()" style="margin-top:15px; width:auto; padding:10px 20px;">MENU</button>`;
+                    this.hud.style.cssText += 'top:50%;left:50%;transform:translate(-50%,-50%);color:#0f0;font-size:38px;text-align:center;pointer-events:auto;';
+                    return;
+                }
+            }
 
             // Coins
             for (let i = this.coins.length - 1; i >= 0; i--) {
@@ -950,5 +1126,4 @@
     </script>
 </body>
 </html>
-
 
