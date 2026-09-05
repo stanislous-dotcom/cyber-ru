@@ -152,9 +152,10 @@
         <div style="font-size: 13px; color: #888; margin-bottom: 20px; text-shadow: none; text-align: center; max-width: 80%;">
             Swipe Left/Right to change lanes • Swipe Up to Jump<br>Use Arrow Keys / Spacebar on desktop
         </div>
-        <div>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
             <button id="btn-play" class="neon-btn">PLAY GAME</button>
             <button id="btn-market" class="neon-btn purple">MARKETPLACE</button>
+            <button id="btn-main-reset" class="neon-btn danger">RESET</button>
         </div>
     </div>
 
@@ -183,7 +184,7 @@
     </div>
 
     <script>
-    console.log("CYBER RUN - SCROLL & RESET FIX V5 LOADED");
+    console.log("CYBER RUN - MAIN MENU RESET V6 LOADED");
 
     const SafeStorage = {
         data: {},
@@ -535,7 +536,7 @@
                 }
             };
 
-            document.getElementById('btn-reset').onclick = () => {
+            const triggerReset = () => {
                 let code = prompt("Enter security code (6700) to wipe all progress:");
                 if (code === "6700") {
                     SafeStorage.setItem('cyber_credits', '0');
@@ -545,11 +546,15 @@
                     this.highScore = 0;
                     this.magnetUpgraded = false;
                     this.updateMarketUI();
+                    this.showMainMenu();
                     alert("All progress has been wiped successfully.");
                 } else if (code !== null) {
                     alert("Incorrect security code!");
                 }
             };
+
+            document.getElementById('btn-reset').onclick = triggerReset;
+            document.getElementById('btn-main-reset').onclick = triggerReset;
 
             this.uUI = () => {
                 let status = this.boostTimer > 0 ? ' <span style="color:#0f0">[BOOST!]</span>' :
@@ -795,5 +800,6 @@
     </script>
 </body>
 </html>
+
 
 
