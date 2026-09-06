@@ -33,6 +33,24 @@
             100% { transform: scale(1); filter: drop-shadow(0 0 5px #0f0); }
         }
 
+        @keyframes rockGlow {
+            0% { text-shadow: 0 0 8px #ff0, 0 0 2px #fff; }
+            50% { text-shadow: 0 0 18px #ff0, 0 0 6px #fff; }
+            100% { text-shadow: 0 0 8px #ff0, 0 0 2px #fff; }
+        }
+
+        #denzel-label {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 101;
+            color: #ff0;
+            font-size: 11px;
+            letter-spacing: 2px;
+            animation: rockGlow 2s infinite;
+            pointer-events: none;
+        }
+
         .neon-btn {
             border: 2px solid #0ff;
             border-radius: 6px;
@@ -250,6 +268,7 @@
 </head>
 <body>
     <canvas id="canvas"></canvas>
+    <div id="denzel-label">DENZEL</div>
     <div id="hud"></div>
     <div id="bot-leaderboard">
         <div class="lb-title">RACE RANKINGS</div>
@@ -267,7 +286,7 @@
         </div>
     </div>
 
-    <button id="btn-music" class="neon-btn" style="position: fixed; top: 15px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; width: auto; animation: none;">🎵 ON</button>
+    <button id="btn-music" class="neon-btn" style="position: fixed; top: 55px; right: 15px; z-index: 100; padding: 8px 16px; font-size: 14px; width: auto; animation: none;">🎵 ON</button>
 
     <div id="main-menu" class="overlay-screen">
         <h1 style="font-size: 52px; margin: 0; text-shadow: 0 0 15px #0ff; letter-spacing: 2px;">CYBER RUN</h1>
@@ -1180,5 +1199,4 @@
     </script>
 </body>
 </html>
-
 
